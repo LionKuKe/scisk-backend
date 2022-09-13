@@ -31,10 +31,9 @@ public class UserCreateDto {
     @NotBlank
     private String password;
 
-    @Schema(description = "Statut du client : ACTIVE, INACTIVE", required = true)
+    /*@Schema(description = "Statut du client : ACTIVE, INACTIVE", required = true)
     @NotBlank
-    private String status;
-
+    private String status;*/
 
     private String phone1;
 

@@ -41,7 +41,7 @@ public class UserServImpl implements UserService {
                 .lastname(userCreateDto.getLastName())
                 .email(userCreateDto.getEmail())
                 .password(userCreateDto.getPassword())
-                .status(userCreateDto.getStatus())
+                .status(GlobalParams.UserStatus.ACTIVE.name())
                 .phone1(userCreateDto.getPhone1())
                 .phone2(userCreateDto.getPhone2())
                 .phone3(userCreateDto.getPhone3())
