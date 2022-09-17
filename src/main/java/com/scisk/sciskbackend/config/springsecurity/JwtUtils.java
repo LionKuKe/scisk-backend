@@ -3,9 +3,11 @@ package com.scisk.sciskbackend.config.springsecurity;
 import io.jsonwebtoken.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.List;
 
 @Component
 @Log4j2
@@ -18,12 +20,21 @@ public class JwtUtils {
     private int jwtExpirationMs;
 
     public String generateJwtToken(UserDetailsImpl userPrincipal) {
-        return generateTokenFromUsername(userPrincipal.getUsername());
+        return generateTokenFromUsername(
+                (List<? extends GrantedAuthority>) userPrincipal.getAuthorities(),
+                userPrincipal.getFirstname(),
+                userPrincipal.getLastname(),
+                userPrincipal.getEmail()
+        );
     }
 
-    public String generateTokenFromUsername(String username) {
+    public String generateTokenFromUsername(List<? extends GrantedAuthority> authorities, String firstname, String lastname, String email) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
+                .claim("authorities", authorities)
+                .claim("firstname", firstname)
+                .claim("lastname", lastname)
+                .claim("email", email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)

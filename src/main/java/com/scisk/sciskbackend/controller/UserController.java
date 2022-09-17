@@ -19,11 +19,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,7 +86,7 @@ public class UserController {
             @Valid @RequestBody UserAuthenticateDto userAuthenticateDto
     ) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(userAuthenticateDto.getEmail(), userAuthenticateDto.getPassword()));
+                    new UsernamePasswordAuthenticationToken(userAuthenticateDto.getEmail(), userAuthenticateDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String jwt = jwtUtils.generateJwtToken(userDetails);
@@ -96,7 +97,7 @@ public class UserController {
         return new ResponseModel<>(
                 new SimpleObjectResponseModel<>(
                         "user.connected",
-                        new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(), userDetails.getEmail(), roles.get(0))
+                        new JwtResponse(jwt, refreshToken.getToken())
                 ),
                 HttpStatus.OK
         );
@@ -119,7 +120,13 @@ public class UserController {
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    String token = jwtUtils.generateTokenFromUsername(user.getEmail());
+                    String token = jwtUtils.generateTokenFromUsername(
+                            user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList()),
+                            user.getFirstname(),
+                            user.getLastname(),
+                            user.getEmail()
+
+                    );
                     return new ResponseModel<>(new SimpleObjectResponseModel<>("token.generated", new TokenRefreshResponse(token, requestRefreshToken)), HttpStatus.OK);
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,

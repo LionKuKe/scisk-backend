@@ -18,7 +18,7 @@ public class User {
 	
 	@Id
 	private Long id;
-	private String firsname;
+	private String firstname;
 	private String lastname;
 	private String email;
 	private String password;

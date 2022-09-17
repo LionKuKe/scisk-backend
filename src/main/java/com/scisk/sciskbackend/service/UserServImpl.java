@@ -37,7 +37,7 @@ public class UserServImpl implements UserService {
         }
 
         User user = User.builder()
-                .firsname(userCreateDto.getFirstName())
+                .firstname(userCreateDto.getFirstName())
                 .lastname(userCreateDto.getLastName())
                 .email(userCreateDto.getEmail())
                 .password(userCreateDto.getPassword())

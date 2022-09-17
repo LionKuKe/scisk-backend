@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -95,6 +96,14 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler({ObjectExistsException.class})
     public ResponseEntity<Object> handleObjectExistsException(ObjectExistsException ex, WebRequest request) {
         return getExceptionResponseEntity(ex, HttpStatus.CONFLICT, request, new HashMap<>());
+    }
+
+    @ExceptionHandler({AuthenticationException.class})
+    public ResponseEntity<Object> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        Map<String, String> errors = new HashMap<>();
+        String message = ex.getLocalizedMessage();
+        errors.put("message", message);
+        return getExceptionResponseEntity(ex, HttpStatus.UNAUTHORIZED, request, errors);
     }
 
     /**

@@ -69,7 +69,7 @@ public class AppRunner implements ApplicationRunner {
         Document obj = (Document) mongoCollection.find(whereQuery).first();
         if (Objects.isNull(obj)) {
             User user = User.builder()
-                    .firsname(GlobalParams.SUPERUSER_FIRSTNAME)
+                    .firstname(GlobalParams.SUPERUSER_FIRSTNAME)
                     .lastname(GlobalParams.SUPERUSER_LASTNAME)
                     .email(GlobalParams.SUPERUSER_EMAIL)
                     .roles(Collections.singletonList(Role.builder().name(GlobalParams.Role.ADMINISTRATOR.name()).build()))

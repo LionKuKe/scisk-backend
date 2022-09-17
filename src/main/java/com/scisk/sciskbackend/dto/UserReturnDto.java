@@ -32,7 +32,7 @@ public class UserReturnDto {
     public static UserReturnDto map(User user) {
         return UserReturnDto.builder()
                 .id(user.getId())
-                .firstname(user.getFirsname())
+                .firstname(user.getFirstname())
                 .lastname(user.getLastname())
                 .email(user.getEmail())
                 .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
