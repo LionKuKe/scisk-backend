@@ -6,6 +6,7 @@ import com.scisk.sciskbackend.dto.UserCreateDto;
 import com.scisk.sciskbackend.dto.UserReturnDto;
 import com.scisk.sciskbackend.entity.RefreshToken;
 import com.scisk.sciskbackend.responses.JwtResponse;
+import com.scisk.sciskbackend.responses.OperationResponseModel;
 import com.scisk.sciskbackend.responses.ResponseModel;
 import com.scisk.sciskbackend.responses.SimpleObjectResponseModel;
 import com.scisk.sciskbackend.service.UserService;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -131,6 +133,18 @@ public class UserController {
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
                         "refreshtoken.not.in.database"));
+    }
+
+    @Operation(summary = "Déconnecter un utilisateur", tags = {"Gestion des utilisateurs"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Déconnexion réussie")
+    })
+    @PostMapping("/logout")
+    public ResponseModel LogoutUser(
+            @Parameter(description = "Username", required = true)
+            @RequestBody String username
+    ) {
+        return new ResponseModel<>(new OperationResponseModel("user.logout"), HttpStatus.OK);
     }
 
     /*@Operation(summary = "Récupérer la liste des utilisateurs au format paginé", tags = {"Gestion des utilisateurs"})
