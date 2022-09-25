@@ -1,9 +1,11 @@
 package com.scisk.sciskbackend.entity;
 
+import java.time.Instant;
 import java.util.List;
 
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.*;
 
@@ -19,8 +21,12 @@ public class Service {
     private Long id;
     private String name;
     private String description;
+    private Boolean enabled;
+    private Instant createdOn;
 
-    private List<NeededDocument> neededDocument;
+    @Transient
+    private List<NeededDocument> neededDocuments;
 
+    @Transient
     private List<Step> steps;
 }

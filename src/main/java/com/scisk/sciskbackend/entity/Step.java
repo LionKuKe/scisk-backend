@@ -22,6 +22,7 @@ public class Step {
     private String name;
     private String description;
     private Integer order;
+    private Boolean enabled;
 
     @Transient
     private Service service;

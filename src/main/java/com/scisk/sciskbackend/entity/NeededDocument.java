@@ -25,6 +25,8 @@ public class NeededDocument {
 	@Transient
 	private Service service;
 	private Long serviceId;
+
+	private Boolean enabled;
 	
 	public void setService(Service service) {
 		this.service = service;
