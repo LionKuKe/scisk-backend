@@ -2,7 +2,6 @@ package com.scisk.sciskbackend.config;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
-import com.scisk.sciskbackend.entity.Role;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.repository.UserRepository;
 import com.scisk.sciskbackend.service.CounterService;
@@ -72,7 +71,7 @@ public class AppRunner implements ApplicationRunner {
                     .firstname(GlobalParams.SUPERUSER_FIRSTNAME)
                     .lastname(GlobalParams.SUPERUSER_LASTNAME)
                     .email(GlobalParams.SUPERUSER_EMAIL)
-                    .roles(Collections.singletonList(Role.builder().name(GlobalParams.Role.ADMINISTRATOR.name()).build()))
+                    .roles(Collections.singletonList(GlobalParams.Role.ADMINISTRATOR.name()))
                     .status(GlobalParams.UserStatus.ACTIVE.name())
                     .password(passwordEncodingManager.encode(GlobalParams.SUPERUSER_PASSWORD))
                     .build();

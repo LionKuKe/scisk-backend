@@ -59,4 +59,19 @@ public class Util {
             return PASSWOR_STATE.WEAK.name();
     }
 
+    public static Long convertStringToLong(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (Exception exc) {
+            return null;
+        }
+    }
+
+    public static Double convertStringToDouble(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception exc) {
+            return null;
+        }
+    }
 }

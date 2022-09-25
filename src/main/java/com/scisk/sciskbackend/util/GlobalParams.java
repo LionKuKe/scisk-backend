@@ -17,8 +17,9 @@ public interface GlobalParams {
 	public static String SUPERUSER_LASTNAME = "User";
 	public static String SUPERUSER_FIRSTNAME = "Super";
 	public static String SUPERUSER_PASSWORD = "SUPERUSERscisk2022**";
-	public static String SUPERUSER_EMAIL = "lionkuke@gmail.com";
-	
+	public static String SUPERUSER_EMAIL = "scisk@root.com";
+	public static int GLOBAL_DEFAULT_PAGE_SIZE = 10;
+
 	public static enum UserStatus {
         CREATED,    // utilisateur créé
         ACTIVE,     // utilisateur activé aprés validation otp

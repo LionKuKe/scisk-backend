@@ -132,7 +132,7 @@ public class GeneralExceptionHandler extends ResponseEntityExceptionHandler {
                                                               final HttpStatus status,
                                                               final WebRequest request,
                                                               final Map<String, String> errors) {
-        ErrorObjectResponse response = new ErrorObjectResponse(OperationResponseModel.ResponseStatusEnum.ERROR);
+        ErrorObjectResponse response = new ErrorObjectResponse();
         response.setStatus(status.value());
         response.setMessage(ex.getMessage());
         response.setErrors(errors);

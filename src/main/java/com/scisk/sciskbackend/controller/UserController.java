@@ -1,15 +1,16 @@
 package com.scisk.sciskbackend.controller;
 
 import com.scisk.sciskbackend.config.springsecurity.*;
-import com.scisk.sciskbackend.dto.UserAuthenticateDto;
-import com.scisk.sciskbackend.dto.UserCreateDto;
-import com.scisk.sciskbackend.dto.UserReturnDto;
+import com.scisk.sciskbackend.dto.*;
 import com.scisk.sciskbackend.entity.RefreshToken;
 import com.scisk.sciskbackend.responses.JwtResponse;
-import com.scisk.sciskbackend.responses.OperationResponseModel;
 import com.scisk.sciskbackend.responses.ResponseModel;
-import com.scisk.sciskbackend.responses.SimpleObjectResponseModel;
 import com.scisk.sciskbackend.service.UserService;
+import com.scisk.sciskbackend.util.Util;
+import com.scisk.sciskbackend.util.response.ListObjectResponse;
+import com.scisk.sciskbackend.util.response.OperationResponse;
+import com.scisk.sciskbackend.util.response.PageObjectResponse;
+import com.scisk.sciskbackend.util.response.SimpleObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -19,12 +20,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,21 +56,36 @@ public class UserController {
         this.userService = userService;
     }
 
-    @Operation(summary = "Créer un compte utilisateur", tags = {"Gestion des utilisateurs"})
+    @Operation(summary = "Créer un compte client", tags = {"Gestion des utilisateurs"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Création réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
             @ApiResponse(responseCode = "409", description = "L'email déja utilisée"),
             @ApiResponse(responseCode = "412", description = "Email incorrect ou mot de passe incorrect")
     })
-    @PostMapping("/create-account")
-    public ResponseModel createUserAccount(
-            @Parameter(description = "Données du compte client", required = true, schema = @Schema(implementation = UserCreateDto.class))
-            @RequestBody UserCreateDto userCreateDto
+    @PostMapping("/create-customer-account")
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> createCustomerAccount(
+            @Parameter(description = "Données du compte client", required = true, schema = @Schema(implementation = CustomerCreateDto.class))
+            @RequestBody CustomerCreateDto customerCreateDto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new SimpleObjectResponse<>("customer.created", userService.createCustomerAccount(customerCreateDto)));
+    }
+
+    @Operation(summary = "Créer un compte employé", tags = {"Gestion des utilisateurs"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Création réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
+            @ApiResponse(responseCode = "409", description = "L'email déja utilisée"),
+            @ApiResponse(responseCode = "412", description = "Email incorrect ou mot de passe incorrect")
+    })
+    @PostMapping("/create-employee-account")
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> createEmployeeAccount(
+            @Parameter(description = "Données du compte employé", required = true, schema = @Schema(implementation = EmployeeCreateDto.class))
+            @RequestBody EmployeeCreateDto employeeCreateDto
     ) {
         return new ResponseModel<>(
-                new SimpleObjectResponseModel<>(
-                        "account.created",
-                        userService.createAccount(userCreateDto)
+                new SimpleObjectResponse<>(
+                        "employee.created",
+                        userService.createEmployeeAccount(employeeCreateDto)
                 ),
                 HttpStatus.OK
         );
@@ -83,12 +100,12 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Email ou mot de passe incorrects"),
     })
     @PostMapping("/authenticate")
-    public ResponseModel authenticateUser(
+    public ResponseEntity<SimpleObjectResponse<JwtResponse>> authenticateUser(
             @Parameter(description = "Credentials", required = true, schema = @Schema(implementation = UserAuthenticateDto.class))
             @Valid @RequestBody UserAuthenticateDto userAuthenticateDto
     ) {
         Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userAuthenticateDto.getEmail(), userAuthenticateDto.getPassword()));
+                new UsernamePasswordAuthenticationToken(userAuthenticateDto.getEmail(), userAuthenticateDto.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         String jwt = jwtUtils.generateJwtToken(userDetails);
@@ -97,7 +114,7 @@ public class UserController {
                 .collect(Collectors.toList());
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
         return new ResponseModel<>(
-                new SimpleObjectResponseModel<>(
+                new SimpleObjectResponse<>(
                         "user.connected",
                         new JwtResponse(jwt, refreshToken.getToken())
                 ),
@@ -113,7 +130,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Refresh token pas en bd ou refresh token expiré"),
     })
     @PostMapping("/refreshtoken")
-    public ResponseModel refreshtoken(
+    public ResponseEntity<SimpleObjectResponse<TokenRefreshResponse>> refreshtoken(
             @Parameter(description = "Credentials", required = true, schema = @Schema(implementation = TokenRefreshRequest.class))
             @Valid @RequestBody TokenRefreshRequest request
     ) {
@@ -123,13 +140,13 @@ public class UserController {
                 .map(RefreshToken::getUser)
                 .map(user -> {
                     String token = jwtUtils.generateTokenFromUsername(
-                            user.getRoles().stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList()),
+                            user.getRoles().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()),
                             user.getFirstname(),
                             user.getLastname(),
                             user.getEmail()
 
                     );
-                    return new ResponseModel<>(new SimpleObjectResponseModel<>("token.generated", new TokenRefreshResponse(token, requestRefreshToken)), HttpStatus.OK);
+                    return new ResponseModel<>(new SimpleObjectResponse<>("token.generated", new TokenRefreshResponse(token, requestRefreshToken)), HttpStatus.OK);
                 })
                 .orElseThrow(() -> new TokenRefreshException(requestRefreshToken,
                         "refreshtoken.not.in.database"));
@@ -140,77 +157,85 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Déconnexion réussie")
     })
     @PostMapping("/logout")
-    public ResponseModel LogoutUser(
+    public ResponseEntity<OperationResponse> LogoutUser(
             @Parameter(description = "Username", required = true)
             @RequestBody String username
     ) {
-        return new ResponseModel<>(new OperationResponseModel("user.logout"), HttpStatus.OK);
+        return new ResponseModel<>(new OperationResponse("user.logout"), HttpStatus.OK);
     }
 
-    /*@Operation(summary = "Récupérer la liste des utilisateurs au format paginé", tags = {"Gestion des utilisateurs"})
+    @Operation(summary = "Récupérer la liste des utilisateurs au format paginé", tags = {"Gestion des utilisateurs"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Liste retournée avec succès",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
     })
     @GetMapping("/all-by-filters")
     @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseModel findAllByFilter(
+    public ResponseEntity<PageObjectResponse<UserReturnDto>> findAllByFilter(
             @Parameter(description = "La page a retourner")
             @RequestParam(value = "page", required = false) Integer page,
 
             @Parameter(description = "La taille de la page à retourner")
             @RequestParam(value = "size", required = false) Integer size,
 
-            @RequestParam(value = "name", required = false, defaultValue = "") String name,
+            @RequestParam(value = "firstname", required = false, defaultValue = "") String firstname,
+            @RequestParam(value = "lastname", required = false, defaultValue = "") String lastname,
             @RequestParam(value = "email", required = false, defaultValue = "") String email,
             @RequestParam(value = "role", required = false, defaultValue = "") String role,
-            @RequestParam(value = "status", required = false, defaultValue = "") String status
+            @RequestParam(value = "status", required = false, defaultValue = "") String status,
+            @RequestParam(value = "city", required = false, defaultValue = "") String city,
+            @RequestParam(value = "address", required = false, defaultValue = "") String address,
+            @RequestParam(value = "country", required = false, defaultValue = "") String country
     ) {
-        return userInputBoundaryInterface.findAllUserByFilters(
-                page, size, name, email, role, status
-        );
+        Page<UserReturnDto> pagedResult = userService.findAllUserByFilters(page, size, firstname, lastname, email, role, status, city, address, country);
+        PageObjectResponse<UserReturnDto> response = new PageObjectResponse<>();
+        response.setPageStats(pagedResult, true);
+        response.setItems(pagedResult.getContent());
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    @Operation(summary = "Modifier un utilisateur",
-            description = "Modifier les champs : nom, email et role",
-            tags = {"Gestion des utilisateurs"})
+    @Operation(summary = "Modifier un utilisateur", tags = {"Gestion des utilisateurs"})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Modification réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
             @ApiResponse(responseCode = "409", description = "L'email est déja utilisée"),
-            @ApiResponse(responseCode = "412", description = "Email incorrect"),
+            @ApiResponse(responseCode = "412", description = "Email incorrect ou mot de passe incorrect"),
             @ApiResponse(responseCode = "404", description = "Utilisateur non retrouvé en bd par son id")
     })
-    @PutMapping("/update-user/{userId}")
+    @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseModel updateUser(
-            @Parameter(description = "Données du compte client", required = true, schema = @Schema(implementation = UserUpdateDto.class))
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> update(
+            @Parameter(description = "Données de l'utilisateur", required = true, schema = @Schema(implementation = UserUpdateDto.class))
             @RequestBody UserUpdateDto userUpdateDto,
 
             @Parameter(description = "Id de l'utilisateur à modifier", required = true)
-            @PathVariable String userId
+            @PathVariable String id
     ) {
-        Long userIdValue = Util.convertStringToLong(userId);
-        return userInputBoundaryInterface.updateUser(userIdValue, userUpdateDto);
+        Long userIdValue = Util.convertStringToLong(id);
+        return ResponseEntity.ok(new SimpleObjectResponse<>("user.updated", userService.update(userIdValue, userUpdateDto)));
     }
 
-    @Operation(summary = "Activer ou  désactiver un utilisateur",
-            description = "Modifier le champ status",
-            tags = {"Gestion des utilisateurs"})
+    @Operation(summary = "Récupérer les données d'un utilisateur par son id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Modification réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
-            @ApiResponse(responseCode = "404", description = "Utilisateur non retrouvé en bd par son id ou statut non existant en bd")
+            @ApiResponse(responseCode = "200", description = "Données retournées avec succès"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non connecté")
     })
-    @PutMapping("/change-user-status/{userId}/{status}")
+    @GetMapping("/get-by-id/{id}")
     @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseModel changeUserStatus(
-            @Parameter(description = "Id de l'utilisateur à activer/désactiver", required = true)
-            @PathVariable String userId,
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> findById(@PathVariable String id) {
+        Long idValue = Util.convertStringToLong(id);
+        return ResponseEntity.ok(new SimpleObjectResponse<>("ok", userService.findById(idValue)));
+    }
 
-            @Parameter(description = "Le nouveau statut à utiliser", required = true)
-            @PathVariable String status
-    ) {
-        Long userIdValue = Util.convertStringToLong(userId);
-        return userInputBoundaryInterface.changeUserStatus(userIdValue, status);
+    @Operation(summary = "Récupérer les données de l'utilisateur connecté")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Données retournées avec succès"),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non connecté")
+    })
+    @GetMapping("/get-connected-user")
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> getConnectedUser() {
+        return ResponseEntity.ok(new SimpleObjectResponse<>("ok", userService.getConnectedUser()));
     }
 
     @Operation(summary = "Modifier le mot de passe d'un utilisateur",
@@ -219,11 +244,11 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Modification réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
             @ApiResponse(responseCode = "404", description = "Utilisateur non retrouvé en bd par son id"),
-            @ApiResponse(responseCode = "412", description = "Mot de passe invalide")
+            @ApiResponse(responseCode = "412", description = "Mot de passe incorrect")
     })
     @PutMapping("/update-user-password/{userId}")
     @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseModel changeUserPassword(
+    public ResponseEntity<OperationResponse> changeUserPassword(
             @Parameter(description = "Id de l'utilisateur à modifier", required = true)
             @PathVariable String userId,
 
@@ -231,39 +256,8 @@ public class UserController {
             @RequestBody String password
     ) {
         Long userIdValue = Util.convertStringToLong(userId);
-        return userInputBoundaryInterface.changeUserPassword(userIdValue, password);
+        userService.changeUserPassword(userIdValue, password);
+        return new ResponseModel<>(new OperationResponse("password.changed"), HttpStatus.OK);
     }
-
-    @Operation(summary = "Supprimer un utilisateur",
-            description = "Supprimer un utilisateur",
-            tags = {"Gestion des utilisateurs"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Suppression réussie"),
-            @ApiResponse(responseCode = "404", description = "Utilisateur non retrouvé en bd par son id")
-    })
-    @DeleteMapping("/delete-user/{userId}")
-    @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseModel deleteUser(
-            @Parameter(description = "Id de l'utilisateur à supprimer", required = true)
-            @PathVariable String userId
-    ) {
-        Long userIdValue = Util.convertStringToLong(userId);
-        return userInputBoundaryInterface.deleteUser(userIdValue);
-    }
-
-    @Operation(summary = "Créer compte assistant ou administrateur", tags = {"Gestion des utilisateurs"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Création réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserCreateAccountDto.class)))),
-            @ApiResponse(responseCode = "409", description = "L'email déja utilisée"),
-            @ApiResponse(responseCode = "412", description = "Email incorrect ou mot de passe incorrect")
-    })
-    @PostMapping("/create-user-account")
-    @PreAuthorize("hasAnyAuthority('ADMINISTRATOR')")
-    public ResponseModel createUserAccount(
-            @Parameter(description = "Données du compte utiisateur", required = true, schema = @Schema(implementation = UserCreateAccountDto.class))
-            @RequestBody UserCreateAccountDto userCreateAccountDto
-    ) {
-        return userInputBoundaryInterface.createUserAccount(userCreateAccountDto);
-    }*/
 
 }

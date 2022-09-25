@@ -31,7 +31,7 @@ public class User {
 	private String address;
 	private Boolean employee;
 	
-	private List<Role> roles;
+	private List<String> roles;
 
 	public boolean isEmailCorrect() {
 		return Util.isEmailCorrect(email);
