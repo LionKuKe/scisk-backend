@@ -3,12 +3,12 @@ package com.scisk.sciskbackend.service;
 import com.scisk.sciskbackend.dto.*;
 import com.scisk.sciskbackend.entity.NeededDocument;
 import com.scisk.sciskbackend.entity.Step;
+import com.scisk.sciskbackend.exception.ObjectNotFoundException;
 import com.scisk.sciskbackend.repository.NeededDocumentRepository;
 import com.scisk.sciskbackend.repository.ServiceRepository;
 import com.scisk.sciskbackend.repository.StepRepository;
 import com.scisk.sciskbackend.repository.UserRepository;
 import com.scisk.sciskbackend.util.GlobalParams;
-import com.scisk.sciskbackend.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -104,8 +104,15 @@ public class ServiceServImpl implements ServiceService {
     }
 
     @Override
-    public ServiceReturnDto update(Long idValue, ServiceCreateDto serviceCreateDto) {
-        return null;
+    public ServiceReturnDto update(Long idValue, ServiceUpdateDto serviceUpdateDto) {
+        com.scisk.sciskbackend.entity.Service service = serviceRepository.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+
+        service.setName(serviceUpdateDto.getName());
+        service.setDescription(serviceUpdateDto.getDescription());
+        service.setEnabled(serviceUpdateDto.getEnabled());
+
+        service = serviceRepository.save(service);
+        return ServiceReturnDto.map(service);
     }
 
     @Override
@@ -219,7 +226,93 @@ public class ServiceServImpl implements ServiceService {
 
     @Override
     public ServiceReturnDto findById(Long idValue) {
-        return null;
+        return ServiceReturnDto.map(getById(idValue));
+    }
+
+    @Override
+    public StepReturnDto createStep(Long idValue, StepCreateDto stepCreateDto) {
+        com.scisk.sciskbackend.entity.Service service = getById(idValue);
+
+        Step step = Step.builder()
+                .id(counterService.getNextSequence(GlobalParams.STEP_COLLECTION_NAME))
+                .name(stepCreateDto.getName())
+                .description(stepCreateDto.getDescription())
+                .order(stepCreateDto.getOrder())
+                .enabled(stepCreateDto.getEnabled())
+                .service(service)
+                .serviceId(service.getId())
+                .build();
+
+        return StepReturnDto.map(stepRepository.save(step));
+    }
+
+    @Override
+    public NeededDocumentReturnDto createNeededDocument(Long idValue, NeededDocumentCreateDto neededDocumentCreateDto) {
+        com.scisk.sciskbackend.entity.Service service = getById(idValue);
+
+        NeededDocument neededDocument = NeededDocument.builder()
+                .id(counterService.getNextSequence(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME))
+                .name(neededDocumentCreateDto.getName())
+                .enabled(neededDocumentCreateDto.getEnabled())
+                .serviceId(service.getId())
+                .service(service)
+                .build();
+
+        return NeededDocumentReturnDto.map(neededDocumentRepository.save(neededDocument));
+    }
+
+    @Override
+    public StepReturnDto updateStep(Long idValue, Long stepIdValue, StepCreateDto stepCreateDto) {
+        Step step = stepRepository.findById(stepIdValue).orElseThrow(() -> new ObjectNotFoundException("stepId"));
+
+        if (!step.getServiceId().equals(idValue)) {
+            throw new ObjectNotFoundException("service.id");
+        }
+
+        step.setName(stepCreateDto.getName());
+        step.setDescription(stepCreateDto.getDescription());
+        step.setOrder(stepCreateDto.getOrder());
+        step.setEnabled(stepCreateDto.getEnabled());
+
+        return StepReturnDto.map(stepRepository.save(step));
+    }
+
+    @Override
+    public NeededDocumentReturnDto updateNeededDocument(Long idValue, Long neededDocumentIdValue, NeededDocumentCreateDto neededDocumentCreateDto) {
+        NeededDocument neededDocument = neededDocumentRepository.findById(neededDocumentIdValue).orElseThrow(() -> new ObjectNotFoundException("neededDocumentId"));
+
+        if (!neededDocument.getServiceId().equals(idValue)) {
+            throw new ObjectNotFoundException("service.id");
+        }
+
+        neededDocument.setName(neededDocumentCreateDto.getName());
+        neededDocument.setEnabled(neededDocumentCreateDto.getEnabled());
+
+        return NeededDocumentReturnDto.map(neededDocumentRepository.save(neededDocument));
+    }
+
+    public com.scisk.sciskbackend.entity.Service getById(Long id) {
+        // create lookup aggregations
+        AggregationOperation lookupAggSteps = Aggregation.lookup("step", "_id", "serviceId", "steps");
+        AggregationOperation lookupAggNeededDocuements = Aggregation.lookup("neededdocument", "_id", "serviceId", "neededDocuments");
+
+        // create criteria filters
+        Criteria criteria = new Criteria();
+        criteria.and("_id").is(id);
+
+        // create match aggregation
+        AggregationOperation matchAgg = Aggregation.match(criteria);
+
+        // final aggreagation
+        Aggregation aggregation = Aggregation.newAggregation(lookupAggSteps, lookupAggNeededDocuements, matchAgg);
+
+        // query database
+        AggregationResults<com.scisk.sciskbackend.entity.Service> obj = mongoTemplate.aggregate(
+                aggregation, GlobalParams.SERVICE_COLLECTION_NAME, com.scisk.sciskbackend.entity.Service.class
+        );
+        java.util.List<com.scisk.sciskbackend.entity.Service> results = obj.getMappedResults();
+
+        return results.stream().findFirst().orElseThrow(() -> new ObjectNotFoundException("id"));
     }
 
 }

@@ -12,4 +12,12 @@ import java.util.Optional;
 @Repository
 public interface ServiceRepository extends MongoRepository<Service, Long> {
 
+    @Query(
+            value = "[" +
+                    "{_id:'?0'}, " +
+                    "{$lookup : {from : 'step', localField : '_id', foreignField : 'serviceId', as : 'steps'}}, " +
+                    "{$lookup : {from : 'neededdocument', localField : '_id', foreignField : 'serviceId', as : 'neededDocuments'}} " +
+                    "]"
+    )
+    List<Service> getById(Long id);
 }
