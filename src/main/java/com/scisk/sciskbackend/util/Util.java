@@ -1,6 +1,9 @@
 package com.scisk.sciskbackend.util;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class Util {
 
@@ -73,5 +76,23 @@ public class Util {
         } catch (Exception exc) {
             return null;
         }
+    }
+
+    public static <T> T[] removeElementInArray(T[] arr, int index){
+        for (int i = index + 1 ; i < arr.length ; i++) {
+            arr[i-1] = arr[i];
+        }
+        return (T[]) Arrays.stream(arr)
+                .limit(arr.length - 1)
+                .map(t -> (T) t).toArray();
+    }
+
+    public static <T> T[] removeElementsInArray(T[] arr, List<Integer> indexes){
+        for (Integer index : indexes) {
+            for (int i = index + 1 ; i < arr.length ; i++) {
+                arr[i-1] = arr[i];
+            }
+        }
+        return (T[]) Arrays.stream(arr).limit(arr.length - indexes.size()).map(t -> (T) t).toArray();
     }
 }

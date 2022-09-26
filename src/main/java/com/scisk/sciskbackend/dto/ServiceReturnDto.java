@@ -31,12 +31,12 @@ public class ServiceReturnDto {
                 .name(service.getName())
                 .description(service.getDescription())
                 .neededDocuments(
-                        (Objects.isNull(service.getNeededDocuments()) || service.getNeededDocuments().isEmpty()) ?
+                        (Objects.isNull(service.getNeededDocuments()) || service.getNeededDocuments().size() == 0) ?
                                 null :
                                 service.getNeededDocuments().stream().map(NeededDocumentReturnDto::map).collect(Collectors.toList())
                 )
                 .steps(
-                        (Objects.isNull(service.getSteps()) || service.getSteps().isEmpty()) ?
+                        (Objects.isNull(service.getSteps()) || service.getSteps().size() == 0) ?
                                 null :
                                 service.getSteps().stream().map(StepReturnDto::map).collect(Collectors.toList())
                 )

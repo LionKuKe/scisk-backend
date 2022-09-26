@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.*;
 
@@ -24,9 +23,7 @@ public class Service {
     private Boolean enabled;
     private Instant createdOn;
 
-    @Transient
     private List<NeededDocument> neededDocuments;
 
-    @Transient
     private List<Step> steps;
 }

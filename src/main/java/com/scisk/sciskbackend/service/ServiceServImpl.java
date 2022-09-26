@@ -8,6 +8,7 @@ import com.scisk.sciskbackend.repository.ServiceRepository;
 import com.scisk.sciskbackend.repository.StepRepository;
 import com.scisk.sciskbackend.repository.UserRepository;
 import com.scisk.sciskbackend.util.GlobalParams;
+import com.scisk.sciskbackend.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -66,7 +67,6 @@ public class ServiceServImpl implements ServiceService {
         // on enregistre les étapes
         if (!serviceCreateDto.getSteps().isEmpty()) {
             service.setSteps(new ArrayList<>());
-
             for (StepCreateDto stepCreateDto : serviceCreateDto.getSteps()) {
                 Step step = Step.builder()
                         .name(stepCreateDto.getName())
@@ -79,7 +79,6 @@ public class ServiceServImpl implements ServiceService {
 
                 step.setId(counterService.getNextSequence(GlobalParams.STEP_COLLECTION_NAME));
                 stepRepository.save(step);
-
                 service.getSteps().add(step);
             }
         }
@@ -97,7 +96,6 @@ public class ServiceServImpl implements ServiceService {
 
                 neededDocument.setId(counterService.getNextSequence(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME));
                 neededDocumentRepository.save(neededDocument);
-
                 service.getNeededDocuments().add(neededDocument);
             }
         }
@@ -127,12 +125,17 @@ public class ServiceServImpl implements ServiceService {
 
         // create criteria filters
         Criteria criteria = new Criteria();
+
         if (StringUtils.isNotBlank(name)) {
             criteria.and("name").regex(name, "i");
         }
+
         if (StringUtils.isNotBlank(description)) {
             criteria.and("description").regex(description, "i");
         }
+
+        // on filtre uniquement les documents activés
+        criteria.and("enabled").is(true);
 
         // create match aggregation
         AggregationOperation matchAgg = Aggregation.match(criteria);
@@ -152,10 +155,15 @@ public class ServiceServImpl implements ServiceService {
 
         // query database
         AggregationResults<com.scisk.sciskbackend.entity.Service> obj = mongoTemplate.aggregate(
-                aggregation,
-                mongoTemplate.getCollectionName(com.scisk.sciskbackend.entity.Service.class),
-                com.scisk.sciskbackend.entity.Service.class);
+                aggregation, GlobalParams.SERVICE_COLLECTION_NAME, com.scisk.sciskbackend.entity.Service.class
+        );
         java.util.List<com.scisk.sciskbackend.entity.Service> results = obj.getMappedResults();
+
+        // dans les tableaux steps et neededDocuments on retire les documents inactivés
+        for (com.scisk.sciskbackend.entity.Service service : results) {
+            service.setSteps(service.getSteps().stream().filter(step -> step.getEnabled().equals(true)).collect(Collectors.toList()));
+            service.setNeededDocuments(service.getNeededDocuments().stream().filter(neededDocument -> neededDocument.getEnabled().equals(true)).collect(Collectors.toList()));
+        }
 
         return new PageImpl<>(
                 results.stream().map(ServiceReturnDto::map).collect(Collectors.toList()),
@@ -168,4 +176,5 @@ public class ServiceServImpl implements ServiceService {
     public ServiceReturnDto findById(Long idValue) {
         return null;
     }
+
 }
