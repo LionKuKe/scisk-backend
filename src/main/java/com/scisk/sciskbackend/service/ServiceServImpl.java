@@ -110,7 +110,52 @@ public class ServiceServImpl implements ServiceService {
 
     @Override
     public Page<ServiceReturnDto> findAllServiceByFilters(Integer page, Integer size, String name, String description) {
-        return null;
+        int pageNumber = Objects.isNull(page) ? 0 : page - 1;
+        int pageSize = Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "createdOn");
+
+        // create lookup aggregations
+        AggregationOperation lookupAggSteps = Aggregation.lookup("step", "_id", "serviceId", "steps");
+        AggregationOperation lookupAggNeededDocuements = Aggregation.lookup("neededdocument", "_id", "serviceId", "neededDocuments");
+
+        // create criteria filters
+        Criteria criteria = new Criteria();
+
+        if (StringUtils.isNotBlank(name)) {
+            criteria.and("name").regex(name, "i");
+        }
+
+        if (StringUtils.isNotBlank(description)) {
+            criteria.and("description").regex(description, "i");
+        }
+
+        // create match aggregation
+        AggregationOperation matchAgg = Aggregation.match(criteria);
+
+        // create sort aggregation
+        AggregationOperation sortAgg = Aggregation.sort(Sort.Direction.DESC, "createdOn");
+
+        // create skip aggregation
+        long elementToSkip = pageNumber * pageSize;
+        AggregationOperation skipAgg = Aggregation.skip(elementToSkip);
+
+        // create limit aggreagtion
+        AggregationOperation limitAgg = Aggregation.limit(pageSize);
+
+        // final aggreagation
+        Aggregation aggregation = Aggregation.newAggregation(lookupAggSteps, lookupAggNeededDocuements, matchAgg, sortAgg, skipAgg, limitAgg);
+
+        // query database
+        AggregationResults<com.scisk.sciskbackend.entity.Service> obj = mongoTemplate.aggregate(
+                aggregation, GlobalParams.SERVICE_COLLECTION_NAME, com.scisk.sciskbackend.entity.Service.class
+        );
+        java.util.List<com.scisk.sciskbackend.entity.Service> results = obj.getMappedResults();
+
+        return new PageImpl<>(
+                results.stream().map(ServiceReturnDto::map).collect(Collectors.toList()),
+                pageable,
+                mongoTemplate.count(new Query(criteria), com.scisk.sciskbackend.entity.Service.class)
+        );
     }
 
     @Override
