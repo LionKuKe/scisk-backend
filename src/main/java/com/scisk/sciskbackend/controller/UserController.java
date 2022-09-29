@@ -159,7 +159,7 @@ public class UserController {
     @PostMapping("/logout")
     public ResponseEntity<OperationResponse> LogoutUser(
             @Parameter(description = "Username", required = true)
-            @RequestBody String username
+            @RequestBody StringDto username
     ) {
         return new ResponseModel<>(new OperationResponse("user.logout"), HttpStatus.OK);
     }
@@ -253,10 +253,10 @@ public class UserController {
             @PathVariable String userId,
 
             @Parameter(description = "Le nouveau mot de passe à utiliser", required = true)
-            @RequestBody String password
+            @RequestBody StringDto password
     ) {
         Long userIdValue = Util.convertStringToLong(userId);
-        userService.changeUserPassword(userIdValue, password);
+        userService.changeUserPassword(userIdValue, password.getValue());
         return new ResponseModel<>(new OperationResponse("password.changed"), HttpStatus.OK);
     }
 
