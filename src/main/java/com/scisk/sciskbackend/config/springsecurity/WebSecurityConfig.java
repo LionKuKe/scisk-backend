@@ -61,6 +61,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/user/check-customer-otp").permitAll()
                 .antMatchers("/user/authenticate").permitAll()
                 .antMatchers("/user/refreshtoken").permitAll()
+                .antMatchers("/service/find-for-customer").permitAll()
                 .anyRequest().authenticated();
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
     }

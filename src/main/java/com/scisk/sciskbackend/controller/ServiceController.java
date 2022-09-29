@@ -95,7 +95,6 @@ public class ServiceController {
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = ServiceReturnDto.class)))),
     })
     @GetMapping("/find-for-customer")
-    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
     public ResponseEntity<PageObjectResponse<ServiceReturnDto>> findAllForCustomers(
             @Parameter(description = "La page a retourner")
             @RequestParam(value = "page", required = false) Integer page,
