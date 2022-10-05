@@ -1,15 +1,12 @@
 package com.scisk.sciskbackend.dto;
 
-import com.scisk.sciskbackend.entity.Service;
+import com.scisk.sciskbackend.entity.Payment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -17,30 +14,18 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PaymentReturnDto {
     private Long id;
-    private String name;
-    private String description;
-    private Instant createdOn;
+    private Instant paymentDate;
+    private Double amount;
+    private String observation;
+    private Long recordId;
 
-    private List<NeededDocumentReturnDto> neededDocuments;
-
-    private List<StepReturnDto> steps;
-
-    public static PaymentReturnDto map(Service service) {
+    public static PaymentReturnDto map(Payment payment) {
         return PaymentReturnDto.builder()
-                .id(service.getId())
-                .name(service.getName())
-                .description(service.getDescription())
-                .neededDocuments(
-                        (Objects.isNull(service.getNeededDocuments()) || service.getNeededDocuments().size() == 0) ?
-                                null :
-                                service.getNeededDocuments().stream().map(NeededDocumentReturnDto::map).collect(Collectors.toList())
-                )
-                .steps(
-                        (Objects.isNull(service.getSteps()) || service.getSteps().size() == 0) ?
-                                null :
-                                service.getSteps().stream().map(StepReturnDto::map).collect(Collectors.toList())
-                )
-                .createdOn(service.getCreatedOn())
+                .id(payment.getId())
+                .paymentDate(payment.getPaymentDate())
+                .amount(payment.getAmount())
+                .observation(payment.getObservation())
+                .recordId(payment.getRecordId())
                 .build();
     }
 }

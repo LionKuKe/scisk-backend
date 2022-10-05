@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.service;
 
 import com.scisk.sciskbackend.dto.*;
+import com.scisk.sciskbackend.entity.Service;
 import org.springframework.data.domain.Page;
 
 public interface ServiceService {
@@ -14,6 +15,8 @@ public interface ServiceService {
     Page<ServiceReturnDto> findAllForCustomers(Integer page, Integer size, String name, String description);
 
     ServiceReturnDto findById(Long idValue);
+
+    Service getById(Long idValue);
 
     StepReturnDto createStep(Long idValue, StepCreateDto stepCreateDto);
 

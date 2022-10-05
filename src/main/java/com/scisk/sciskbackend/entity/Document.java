@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.entity;
 
 import lombok.*;
+import org.springframework.data.annotation.Transient;
 
 @Builder
 @Getter
@@ -13,7 +14,8 @@ public class Document {
 	private String extension;
 	
 	private Record record;
-	
-	private NeededDocument neededDocument;
 
+	@Transient
+	private NeededDocument neededDocument;
+	private Long neededDocumentId;
 }

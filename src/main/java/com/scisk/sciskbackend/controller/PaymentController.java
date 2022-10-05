@@ -79,10 +79,11 @@ public class PaymentController {
             @Parameter(description = "La taille de la page à retourner")
             @RequestParam(value = "size", required = false) Integer size,
 
-            @RequestParam(value = "name", required = false, defaultValue = "") String name,
-            @RequestParam(value = "description", required = false, defaultValue = "") String description
+            @RequestParam(value = "observation", required = false, defaultValue = "") String observation,
+            @RequestParam(value = "recordId", required = false, defaultValue = "") String recordId
     ) {
-        Page<PaymentReturnDto> pagedResult = paymentService.findAllPaymentByFilters(page, size, name, description);
+        Long recordIdValue = Util.convertStringToLong(recordId);
+        Page<PaymentReturnDto> pagedResult = paymentService.findAllPaymentByFilters(page, size, observation, recordIdValue);
         PageObjectResponse<PaymentReturnDto> response = new PageObjectResponse<>();
         response.setPageStats(pagedResult, true);
         response.setItems(pagedResult.getContent());

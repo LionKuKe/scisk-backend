@@ -76,12 +76,9 @@ public class RecordController {
             @RequestParam(value = "page", required = false) Integer page,
 
             @Parameter(description = "La taille de la page à retourner")
-            @RequestParam(value = "size", required = false) Integer size,
-
-            @RequestParam(value = "name", required = false, defaultValue = "") String name,
-            @RequestParam(value = "description", required = false, defaultValue = "") String description
+            @RequestParam(value = "size", required = false) Integer size
     ) {
-        Page<RecordReturnDto> pagedResult = recordService.findAllRecordByFilters(page, size, name, description);
+        Page<RecordReturnDto> pagedResult = recordService.findAllRecordByFilters(page, size);
         PageObjectResponse<RecordReturnDto> response = new PageObjectResponse<>();
         response.setPageStats(pagedResult, true);
         response.setItems(pagedResult.getContent());
@@ -101,12 +98,9 @@ public class RecordController {
             @RequestParam(value = "page", required = false) Integer page,
 
             @Parameter(description = "La taille de la page à retourner")
-            @RequestParam(value = "size", required = false) Integer size,
-
-            @RequestParam(value = "name", required = false, defaultValue = "") String name,
-            @RequestParam(value = "description", required = false, defaultValue = "") String description
+            @RequestParam(value = "size", required = false) Integer size
     ) {
-        Page<RecordReturnDto> pagedResult = recordService.findAllForCustomers(page, size, name, description);
+        Page<RecordReturnDto> pagedResult = recordService.findAllForCustomers(page, size);
         PageObjectResponse<RecordReturnDto> response = new PageObjectResponse<>();
         response.setPageStats(pagedResult, true);
         response.setItems(pagedResult.getContent());
@@ -135,10 +129,13 @@ public class RecordController {
     @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
     public ResponseEntity<SimpleObjectResponse<RecordReturnDto>> suspend(
             @Parameter(description = "Id du dossier à suspendre", required = true)
-            @PathVariable String id
+            @PathVariable String id,
+
+            @Parameter(description = "Motif de suspension", required = true, schema = @Schema(implementation = StringDto.class))
+            @RequestBody StringDto stringDto
     ) {
         Long idValue = Util.convertStringToLong(id);
-        return ResponseEntity.ok(new SimpleObjectResponse<>("record.suspended", recordService.suspend(idValue)));
+        return ResponseEntity.ok(new SimpleObjectResponse<>("record.suspended", recordService.suspend(idValue, stringDto.getValue())));
     }
 
 }

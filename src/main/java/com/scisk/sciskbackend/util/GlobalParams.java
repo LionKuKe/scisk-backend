@@ -1,5 +1,8 @@
 package com.scisk.sciskbackend.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public interface GlobalParams {
 	
 	public static String REFRESHTOKEN_COLLECTION_NAME = "refreshtoken";
@@ -13,11 +16,16 @@ public interface GlobalParams {
 	public static String STEP_COLLECTION_NAME = "step";
 	public static String JOB_COLLECTION_NAME = "job";
 	public static String NEEDED_DOCUMENT_COLLECTION_NAME = "neededdocument";
-	
+
+	public static Integer MAX_RECORD_NUMBER_OF_DIGIT_PER_MONTH = 3;
+
 	public static String SUPERUSER_LASTNAME = "User";
 	public static String SUPERUSER_FIRSTNAME = "Super";
 	public static String SUPERUSER_PASSWORD = "SUPERUSERscisk2022**";
 	public static String SUPERUSER_EMAIL = "scisk@root.com";
+
+	public static Double MIN_AMOUNT_FOR_RECORD_OPENING = 25000d;
+
 	public static int GLOBAL_DEFAULT_PAGE_SIZE = 10;
 
 	public static enum UserStatus {

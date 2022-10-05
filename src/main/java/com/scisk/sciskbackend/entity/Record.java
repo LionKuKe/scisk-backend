@@ -1,12 +1,12 @@
 package com.scisk.sciskbackend.entity;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.*;
 
@@ -22,24 +22,31 @@ public class Record {
     private Long id;
     private String code;
 
-    @Transient
     private User customer;
     private Long customerId;
 
-    @Transient
     private User manager;
     private Long managerId;
 
-    @Transient
     private Service service;
     private Long serviceId;
+
+    private Instant createdOn;
+
+    private Boolean suspended;
+    private Instant suspensionDate;
+    private String suspensionReason;
+
+    /**
+     * Booléen indiquant si le dossier est payé ou pas
+     */
+    private Boolean paid;
 
     private List<Payment> payments;
 
     private List<com.scisk.sciskbackend.entity.Document> documents;
 
     private List<RecordStep> recordSteps;
-
 
     public void setCustomer(User customer) {
         this.customer = customer;

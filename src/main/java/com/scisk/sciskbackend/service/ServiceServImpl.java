@@ -291,6 +291,7 @@ public class ServiceServImpl implements ServiceService {
         return NeededDocumentReturnDto.map(neededDocumentRepository.save(neededDocument));
     }
 
+    @Override
     public com.scisk.sciskbackend.entity.Service getById(Long id) {
         // create lookup aggregations
         AggregationOperation lookupAggSteps = Aggregation.lookup("step", "_id", "serviceId", "steps");

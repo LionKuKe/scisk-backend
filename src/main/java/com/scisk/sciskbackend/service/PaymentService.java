@@ -10,7 +10,7 @@ public interface PaymentService {
 
     PaymentReturnDto update(Long idValue, PaymentCreateDto paymentCreateDto);
 
-    Page<PaymentReturnDto> findAllPaymentByFilters(Integer page, Integer size, String name, String description);
+    Page<PaymentReturnDto> findAllPaymentByFilters(Integer page, Integer size, String observation, Long recordId);
 
     PaymentReturnDto findById(Long idValue);
 

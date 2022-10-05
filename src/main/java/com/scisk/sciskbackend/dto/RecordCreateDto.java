@@ -8,33 +8,17 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecordCreateDto {
-    @Schema(description = "Nom du service", required = true)
-    @NotBlank
-    private String name;
-
-    @Schema(description = "Description du service", required = true)
-    @NotBlank
-    private String description;
-
-    @Schema(description = "Etat du service : activé ou désactivé", required = true)
+    @Schema(description = "Le client du dossier", required = true)
     @NotNull
-    @Builder.Default
-    private Boolean enabled = true;
+    private Long customerId;
 
-    @Schema(description = "Les étapes du service", required = true)
-    @NotNull
-    @Builder.Default
-    private List<StepCreateDto> steps = new ArrayList<>();
-
-    @Schema(description = "Les documents nécessaires à la création du service")
-    @Builder.Default
-    private List<NeededDocumentCreateDto> neededDocuments = new ArrayList<>();
+    @Schema(description = "Le service choisi", required = true)
+    @NotBlank
+    private Long serviceId;
 }

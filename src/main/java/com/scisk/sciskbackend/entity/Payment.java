@@ -1,11 +1,11 @@
 package com.scisk.sciskbackend.entity;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.*;
@@ -24,8 +24,8 @@ public class Payment {
     private Double amount;
     private String observation;
 
-    @Transient
     private Record record;
+    private List<Record> records;
     private Long recordId;
 
     public void setRecord(Record record) {
@@ -33,4 +33,7 @@ public class Payment {
         this.recordId = Objects.isNull(record) ? null : record.getId();
     }
 
+    public Record getRecord() {
+        return (!Objects.isNull(records) && records.size() > 0) ? records.get(0) : record;
+    }
 }

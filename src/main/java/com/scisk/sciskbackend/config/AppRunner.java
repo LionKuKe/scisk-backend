@@ -96,6 +96,7 @@ public class AppRunner implements ApplicationRunner {
         documentNames.add(GlobalParams.STEP_COLLECTION_NAME);
         documentNames.add(GlobalParams.JOB_COLLECTION_NAME);
         documentNames.add(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME);
+        documentNames.add(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME);
 
         Set<String> collectionNames = mongo.getCollectionNames();
         boolean countersCollectionExists = false;

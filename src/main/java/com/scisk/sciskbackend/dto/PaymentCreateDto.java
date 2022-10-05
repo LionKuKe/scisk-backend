@@ -8,33 +8,26 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentCreateDto {
-    @Schema(description = "Nom du service", required = true)
-    @NotBlank
-    private String name;
-
-    @Schema(description = "Description du service", required = true)
-    @NotBlank
-    private String description;
-
-    @Schema(description = "Etat du service : activé ou désactivé", required = true)
+    @Schema(description = "Date du paiement", required = true)
     @NotNull
-    @Builder.Default
-    private Boolean enabled = true;
+    private Instant paymentDate;
 
-    @Schema(description = "Les étapes du service", required = true)
+    @Schema(description = "Montant du paiement", required = true)
     @NotNull
-    @Builder.Default
-    private List<StepCreateDto> steps = new ArrayList<>();
+    private Double amount;
 
-    @Schema(description = "Les documents nécessaires à la création du service")
-    @Builder.Default
-    private List<NeededDocumentCreateDto> neededDocuments = new ArrayList<>();
+    @Schema(description = "Observation", required = true)
+    @NotBlank
+    private String observation;
+
+    @Schema(description = "Le dossier qui est payé", required = true)
+    @NotNull
+    private Long recordId;
 }
