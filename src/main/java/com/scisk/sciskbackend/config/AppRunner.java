@@ -2,6 +2,7 @@ package com.scisk.sciskbackend.config;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
+import com.scisk.sciskbackend.datasourceentity.UserDS;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.repository.UserRepository;
 import com.scisk.sciskbackend.service.CounterService;
@@ -76,7 +77,7 @@ public class AppRunner implements ApplicationRunner {
                     .password(passwordEncodingManager.encode(GlobalParams.SUPERUSER_PASSWORD))
                     .build();
             user.setId(counterService.getNextSequence(GlobalParams.USER_COLLECTION_NAME));
-            userRepository.save(user);
+            userRepository.save(UserDS.map(user));
         }
 
     }

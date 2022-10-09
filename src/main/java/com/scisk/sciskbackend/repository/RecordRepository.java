@@ -1,18 +1,16 @@
 package com.scisk.sciskbackend.repository;
 
-import com.scisk.sciskbackend.entity.Record;
-import com.scisk.sciskbackend.entity.Service;
+import com.scisk.sciskbackend.datasourceentity.RecordDS;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
 
 @Repository
-public interface RecordRepository extends MongoRepository<Record, Long> {
+public interface RecordRepository extends MongoRepository<RecordDS, Long> {
 
-    List<Record> findAllByCreatedOnBetween(Instant start, Instant end);
+    List<RecordDS> findAllByCreatedOnBetween(Instant start, Instant end);
 
-    List<Record> findAllByCode(String code);
+    List<RecordDS> findAllByCode(String code);
 }

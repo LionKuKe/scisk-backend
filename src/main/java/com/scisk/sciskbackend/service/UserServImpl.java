@@ -7,7 +7,7 @@ import com.scisk.sciskbackend.dto.UserUpdateDto;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.exception.ObjectExistsException;
 import com.scisk.sciskbackend.exception.ObjectNotFoundException;
-import com.scisk.sciskbackend.repository.UserRepository;
+import com.scisk.sciskbackend.inputdatasource.UserInputDS;
 import com.scisk.sciskbackend.util.AuthenticationUtil;
 import com.scisk.sciskbackend.util.GlobalParams;
 import com.scisk.sciskbackend.util.PasswordEncodingManager;
@@ -33,20 +33,20 @@ import java.util.stream.Collectors;
 @Service
 public class UserServImpl implements UserService {
 
-    private UserRepository userRepository;
+    private UserInputDS userInputDS;
     private PasswordEncodingManager passwordEncodingManager;
     private CounterService counterService;
     private final MongoTemplate mongoTemplate;
     private final AuthenticationUtil authenticationUtil;
 
     public UserServImpl(
-            UserRepository userRepository,
+            UserInputDS userInputDS,
             PasswordEncodingManager passwordEncodingManager,
             CounterService counterService,
             MongoTemplate mongoTemplate,
             AuthenticationUtil authenticationUtil
     ) {
-        this.userRepository = userRepository;
+        this.userInputDS = userInputDS;
         this.passwordEncodingManager = passwordEncodingManager;
         this.counterService = counterService;
         this.mongoTemplate = mongoTemplate;
@@ -77,7 +77,7 @@ public class UserServImpl implements UserService {
         }
 
         // on teste l'existence de l'adresse email
-        if (!userRepository.existsByEmail(customerCreateDto.getEmail()).isEmpty()) {
+        if (!userInputDS.existsByEmail(customerCreateDto.getEmail()).isEmpty()) {
             throw new ObjectExistsException("email.already.exists");
         }
 
@@ -90,7 +90,7 @@ public class UserServImpl implements UserService {
         // on créé le compte utilisateur en bd
 
         user.setId(counterService.getNextSequence(GlobalParams.USER_COLLECTION_NAME));
-        return UserReturnDto.map(userRepository.save(user));
+        return UserReturnDto.map(userInputDS.save(user));
     }
 
     @Override
@@ -130,7 +130,7 @@ public class UserServImpl implements UserService {
         }
 
         // on teste l'existence de l'adresse email
-        if (!userRepository.existsByEmail(employeeCreateDto.getEmail()).isEmpty()) {
+        if (!userInputDS.existsByEmail(employeeCreateDto.getEmail()).isEmpty()) {
             throw new ObjectExistsException("email.already.exists");
         }
 
@@ -142,7 +142,7 @@ public class UserServImpl implements UserService {
 
         // on créé le compte utilisateur en bd
         user.setId(counterService.getNextSequence(GlobalParams.USER_COLLECTION_NAME));
-        return UserReturnDto.map(userRepository.save(user));
+        return UserReturnDto.map(userInputDS.save(user));
     }
 
     @Override
@@ -213,7 +213,7 @@ public class UserServImpl implements UserService {
     @Override
     public UserReturnDto update(Long id, UserUpdateDto userUpdateDto) {
         // on vérifie l'id
-        User user = userRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException("id.not.found"));
+        User user = userInputDS.findById(id).orElseThrow(() -> new ObjectNotFoundException("id.not.found"));
 
         user.setFirstname(userUpdateDto.getFirstname());
         user.setLastname(userUpdateDto.getLastname());
@@ -246,24 +246,24 @@ public class UserServImpl implements UserService {
         }
 
         // on teste l'existence de l'adresse email
-        if (!userRepository.existsByEmail(userUpdateDto.getEmail()).isEmpty()) {
+        if (!userInputDS.existsByEmail(userUpdateDto.getEmail()).isEmpty()) {
             throw new ObjectExistsException("email.already.exists");
         }
 
-        return UserReturnDto.map(userRepository.save(user));
+        return UserReturnDto.map(userInputDS.save(user));
     }
 
     @Override
     public UserReturnDto findById(Long id) {
         return UserReturnDto.map(
-                userRepository.findById(id).orElseThrow(() -> new ObjectNotFoundException("id"))
+                userInputDS.findById(id).orElseThrow(() -> new ObjectNotFoundException("id"))
         );
     }
 
     @Override
     public void changeUserPassword(Long userIdValue, String password) {
         // on vérifie l'id
-        User user = userRepository.findById(userIdValue).orElseThrow(() -> new ObjectNotFoundException("id.not.found"));
+        User user = userInputDS.findById(userIdValue).orElseThrow(() -> new ObjectNotFoundException("id.not.found"));
 
         // on teste la validité du mot de passe
         user.setPassword(password);
@@ -271,14 +271,14 @@ public class UserServImpl implements UserService {
             throw new ObjectExistsException("incorrect.password");
         }
         user.setPassword(passwordEncodingManager.encode(user.getPassword()));
-        userRepository.save(user);
+        userInputDS.save(user);
     }
 
     @Override
     public UserReturnDto getConnectedUser() {
         User user = authenticationUtil.getConnectedUser().orElseThrow(() -> new ObjectNotFoundException("connected.user.not.found"));
         return UserReturnDto.map(
-                userRepository.findById(user.getId()).orElseThrow(() -> new ObjectNotFoundException("id"))
+                userInputDS.findById(user.getId()).orElseThrow(() -> new ObjectNotFoundException("id"))
         );
     }
 }

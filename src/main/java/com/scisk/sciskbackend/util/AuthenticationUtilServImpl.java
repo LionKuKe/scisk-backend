@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.util;
 
 import com.scisk.sciskbackend.config.springsecurity.UserDetailsImpl;
+import com.scisk.sciskbackend.datasourceentity.UserDS;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.repository.UserRepository;
 import lombok.extern.log4j.Log4j2;
@@ -34,6 +35,6 @@ public class AuthenticationUtilServImpl implements AuthenticationUtil {
         }
 
         log.info("connected user : " + email);
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(email).map(UserDS::map);
     }
 }

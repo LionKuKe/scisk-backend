@@ -151,4 +151,8 @@ public class Util {
             return addZeroInFrontOfString("0" + value, totalNumberOfChars);
         }
     }
+
+    public static <T> T testListNullAndGetFirstItem(List<T> list) {
+        return (Objects.isNull(list) || list.isEmpty()) ? null : list.get(0);
+    }
 }

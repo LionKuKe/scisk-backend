@@ -4,7 +4,7 @@ import com.scisk.sciskbackend.dto.*;
 import com.scisk.sciskbackend.entity.*;
 import com.scisk.sciskbackend.exception.ObjectExistsException;
 import com.scisk.sciskbackend.exception.ObjectNotFoundException;
-import com.scisk.sciskbackend.repository.*;
+import com.scisk.sciskbackend.inputdatasource.*;
 import com.scisk.sciskbackend.util.AuthenticationUtil;
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.springframework.data.domain.*;
@@ -25,83 +25,83 @@ import java.util.stream.Collectors;
 @Service
 public class RecordServImpl implements RecordService {
 
-    private UserRepository userRepository;
+    private UserInputDS userInputDS;
     private CounterService counterService;
-    private StepRepository stepRepository;
-    private NeededDocumentRepository neededDocumentRepository;
+    private StepInputDS stepInputDS;
+    private NeededDocumentInputDS neededDocumentInputDS;
     private final MongoTemplate mongoTemplate;
-    private final ServiceRepository serviceRepository;
+    private final ServiceInputDS serviceInputDS;
     private final ServiceService serviceService;
-    private final RecordRepository recordRepository;
-    private final RecordStepRepository recordStepRepository;
-    private final RecordJobRepository recordJobRepository;
-    private final JobRepository jobRepository;
-    private final PaymentRepository paymentRepository;
+    private final RecordInputDS recordInputDS;
+    private final RecordStepInputDS recordStepInputDS;
+    private final RecordJobInputDS recordJobInputDS;
+    private final JobInputDS jobInputDS;
+    private final PaymentInputDS paymentInputDS;
     private final AuthenticationUtil authenticationUtil;
 
     public RecordServImpl(
-            UserRepository userRepository,
+            UserInputDS userInputDS,
             CounterService counterService,
-            StepRepository stepRepository,
-            NeededDocumentRepository neededDocumentRepository,
-            ServiceRepository serviceRepository,
+            StepInputDS stepInputDS,
+            NeededDocumentInputDS neededDocumentInputDS,
+            ServiceInputDS serviceInputDS,
             MongoTemplate mongoTemplate,
             ServiceService serviceService,
-            RecordRepository recordRepository,
-            RecordStepRepository recordStepRepository,
-            RecordJobRepository recordJobRepository,
-            JobRepository jobRepository,
-            PaymentRepository paymentRepository, AuthenticationUtil authenticationUtil) {
-        this.userRepository = userRepository;
+            RecordInputDS recordInputDS,
+            RecordStepInputDS recordStepInputDS,
+            RecordJobInputDS recordJobInputDS,
+            JobInputDS jobInputDS,
+            PaymentInputDS paymentInputDS, AuthenticationUtil authenticationUtil) {
+        this.userInputDS = userInputDS;
         this.counterService = counterService;
-        this.stepRepository = stepRepository;
-        this.neededDocumentRepository = neededDocumentRepository;
+        this.stepInputDS = stepInputDS;
+        this.neededDocumentInputDS = neededDocumentInputDS;
         this.mongoTemplate = mongoTemplate;
-        this.serviceRepository = serviceRepository;
+        this.serviceInputDS = serviceInputDS;
         this.serviceService = serviceService;
-        this.recordRepository = recordRepository;
-        this.recordStepRepository = recordStepRepository;
-        this.recordJobRepository = recordJobRepository;
-        this.jobRepository = jobRepository;
-        this.paymentRepository = paymentRepository;
+        this.recordInputDS = recordInputDS;
+        this.recordStepInputDS = recordStepInputDS;
+        this.recordJobInputDS = recordJobInputDS;
+        this.jobInputDS = jobInputDS;
+        this.paymentInputDS = paymentInputDS;
         this.authenticationUtil = authenticationUtil;
     }
 
 
     @Override
     public RecordReturnDto create(RecordCreateDto recordCreateDto) {
-        User customer = userRepository.findById(recordCreateDto.getCustomerId()).orElseThrow(() -> new ObjectNotFoundException("customerId"));
+        User customer = userInputDS.findById(recordCreateDto.getCustomerId()).orElseThrow(() -> new ObjectNotFoundException("customerId"));
         com.scisk.sciskbackend.entity.Service service = serviceService.getById(recordCreateDto.getServiceId());
 
         // on créé le dossier
         Record record = Record.builder()
                 .id(counterService.getNextSequence(GlobalParams.RECORD_COLLECTION_NAME))
                 .code(counterService.getNextCodeOfCollection(GlobalParams.RECORD_COLLECTION_NAME))
-                .customerId(customer.getId())
-                .serviceId(service.getId())
+                .customer(customer)
+                .service(service)
                 .createdOn(Instant.now())
                 .suspended(false)
                 .paid(false)
                 .build();
-        recordRepository.save(record);
+        recordInputDS.save(record);
         record.setService(service);
         record.setCustomer(customer);
 
-        return RecordReturnDto.map(recordRepository.save(record));
+        return RecordReturnDto.map(record);
     }
 
     @Override
     public RecordReturnDto update(Long idValue, RecordCreateDto recordCreateDto) {
-        User customer = userRepository.findById(recordCreateDto.getCustomerId()).orElseThrow(() -> new ObjectNotFoundException("customerId"));
+        User customer = userInputDS.findById(recordCreateDto.getCustomerId()).orElseThrow(() -> new ObjectNotFoundException("customerId"));
         com.scisk.sciskbackend.entity.Service service = serviceService.getById(recordCreateDto.getServiceId());
-        Record record = recordRepository.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        Record record = recordInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
         if (record.getPaid()) {
             throw new ObjectExistsException("record.already.paid");
         }
         record.setCustomer(customer);
         record.setService(service);
-        recordRepository.save(record);
-        return RecordReturnDto.map(recordRepository.save(record));
+        recordInputDS.save(record);
+        return RecordReturnDto.map(record);
     }
 
     @Override
@@ -202,11 +202,11 @@ public class RecordServImpl implements RecordService {
 
     @Override
     public RecordReturnDto suspend(Long idValue, String reason) {
-        Record record = recordRepository.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        Record record = recordInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
         record.setSuspended(true);
         record.setSuspensionDate(Instant.now());
         record.setSuspensionReason(reason);
-        recordRepository.save(record);
+        recordInputDS.save(record);
         return RecordReturnDto.map(record);
     }
 }

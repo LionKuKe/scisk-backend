@@ -1,9 +1,9 @@
 package com.scisk.sciskbackend.service;
 
-import com.scisk.sciskbackend.entity.Counter;
+import com.scisk.sciskbackend.datasourceentity.Counter;
 import com.scisk.sciskbackend.entity.Record;
 import com.scisk.sciskbackend.exception.ObjectExistsException;
-import com.scisk.sciskbackend.repository.RecordRepository;
+import com.scisk.sciskbackend.inputdatasource.RecordInputDS;
 import com.scisk.sciskbackend.util.GlobalParams;
 import com.scisk.sciskbackend.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.Month;
-import java.time.temporal.ChronoField;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalField;
 import java.util.List;
 
 import static org.springframework.data.mongodb.core.FindAndModifyOptions.options;
@@ -31,7 +28,7 @@ public class CounterServImpl implements CounterService {
     private MongoOperations mongo;
 
     @Autowired
-    private RecordRepository recordRepository;
+    private RecordInputDS recordInputDS;
 
     @Override
     public long getNextSequence(String collectionName) {
@@ -51,16 +48,16 @@ public class CounterServImpl implements CounterService {
         int day = Util.getDayOfMonthFromInstant(now);
         Instant start = Util.getFirstDayOfMonth( year , Month.of(month) );
         Instant end = Util.getLastDayOfMonth(year, Month.of(month));
-        List<Record> records = recordRepository.findAllByCreatedOnBetween(start, end);
+        List<Record> records = recordInputDS.findAllByCreatedOnBetween(start, end);
         String suffix = Util.addZerosInFrontOfValue((long) records.size()+1, GlobalParams.MAX_RECORD_NUMBER_OF_DIGIT_PER_MONTH);
         String nextCode = String.format("%s%s%s%s%s",
                 Util.COLLECTION_NAME_COLLECTION_CODE_MAP.get(collectionName),
-                Integer.toString(year).substring(2, 2),
+                Integer.toString(year).substring(2, 4),
                 Util.addZerosInFrontOfValue((long) month, 2),
                 Util.addZerosInFrontOfValue((long) day, 2),
                 suffix
         );
-        if (recordRepository.findAllByCode(nextCode).isEmpty()) {
+        if (recordInputDS.findAllByCode(nextCode).isEmpty()) {
             return nextCode;
         } else {
             throw new ObjectExistsException("code.exists");

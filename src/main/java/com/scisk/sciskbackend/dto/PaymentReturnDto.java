@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -25,7 +26,7 @@ public class PaymentReturnDto {
                 .paymentDate(payment.getPaymentDate())
                 .amount(payment.getAmount())
                 .observation(payment.getObservation())
-                .recordId(payment.getRecordId())
+                .recordId(Objects.isNull(payment.getRecord()) ? null : payment.getRecord().getId())
                 .build();
     }
 }

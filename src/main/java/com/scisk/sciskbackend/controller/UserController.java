@@ -2,12 +2,11 @@ package com.scisk.sciskbackend.controller;
 
 import com.scisk.sciskbackend.config.springsecurity.*;
 import com.scisk.sciskbackend.dto.*;
-import com.scisk.sciskbackend.entity.RefreshToken;
+import com.scisk.sciskbackend.datasourceentity.RefreshToken;
 import com.scisk.sciskbackend.responses.JwtResponse;
 import com.scisk.sciskbackend.responses.ResponseModel;
 import com.scisk.sciskbackend.service.UserService;
 import com.scisk.sciskbackend.util.Util;
-import com.scisk.sciskbackend.util.response.ListObjectResponse;
 import com.scisk.sciskbackend.util.response.OperationResponse;
 import com.scisk.sciskbackend.util.response.PageObjectResponse;
 import com.scisk.sciskbackend.util.response.SimpleObjectResponse;

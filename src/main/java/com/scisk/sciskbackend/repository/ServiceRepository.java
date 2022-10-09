@@ -1,16 +1,14 @@
 package com.scisk.sciskbackend.repository;
 
-import com.scisk.sciskbackend.entity.Service;
-import com.scisk.sciskbackend.entity.User;
+import com.scisk.sciskbackend.datasourceentity.ServiceDS;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface ServiceRepository extends MongoRepository<Service, Long> {
+public interface ServiceRepository extends MongoRepository<ServiceDS, Long> {
 
     @Query(
             value = "[" +
@@ -19,5 +17,5 @@ public interface ServiceRepository extends MongoRepository<Service, Long> {
                     "{$lookup : {from : 'neededdocument', localField : '_id', foreignField : 'serviceId', as : 'neededDocuments'}} " +
                     "]"
     )
-    List<Service> getById(Long id);
+    List<ServiceDS> getById(Long id);
 }

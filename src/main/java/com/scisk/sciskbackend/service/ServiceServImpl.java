@@ -4,10 +4,10 @@ import com.scisk.sciskbackend.dto.*;
 import com.scisk.sciskbackend.entity.NeededDocument;
 import com.scisk.sciskbackend.entity.Step;
 import com.scisk.sciskbackend.exception.ObjectNotFoundException;
-import com.scisk.sciskbackend.repository.NeededDocumentRepository;
-import com.scisk.sciskbackend.repository.ServiceRepository;
-import com.scisk.sciskbackend.repository.StepRepository;
-import com.scisk.sciskbackend.repository.UserRepository;
+import com.scisk.sciskbackend.inputdatasource.NeededDocumentInputDS;
+import com.scisk.sciskbackend.inputdatasource.ServiceInputDS;
+import com.scisk.sciskbackend.inputdatasource.StepInputDS;
+import com.scisk.sciskbackend.inputdatasource.UserInputDS;
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.*;
@@ -28,27 +28,27 @@ import java.util.stream.Collectors;
 @Service
 public class ServiceServImpl implements ServiceService {
 
-    private UserRepository userRepository;
+    private UserInputDS userInputDS;
     private CounterService counterService;
-    private StepRepository stepRepository;
-    private NeededDocumentRepository neededDocumentRepository;
+    private StepInputDS stepInputDS;
+    private NeededDocumentInputDS neededDocumentInputDS;
     private final MongoTemplate mongoTemplate;
-    private final ServiceRepository serviceRepository;
+    private final ServiceInputDS serviceInputDS;
 
     public ServiceServImpl(
-            UserRepository userRepository,
+            UserInputDS userInputDS,
             CounterService counterService,
-            StepRepository stepRepository,
-            NeededDocumentRepository neededDocumentRepository,
-            ServiceRepository serviceRepository,
+            StepInputDS stepInputDS,
+            NeededDocumentInputDS neededDocumentInputDS,
+            ServiceInputDS serviceInputDS,
             MongoTemplate mongoTemplate
     ) {
-        this.userRepository = userRepository;
+        this.userInputDS = userInputDS;
         this.counterService = counterService;
-        this.stepRepository = stepRepository;
-        this.neededDocumentRepository = neededDocumentRepository;
+        this.stepInputDS = stepInputDS;
+        this.neededDocumentInputDS = neededDocumentInputDS;
         this.mongoTemplate = mongoTemplate;
-        this.serviceRepository = serviceRepository;
+        this.serviceInputDS = serviceInputDS;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ServiceServImpl implements ServiceService {
 
         service.setId(counterService.getNextSequence(GlobalParams.SERVICE_COLLECTION_NAME));
         service.setCreatedOn(Instant.now());
-        serviceRepository.save(service);
+        serviceInputDS.save(service);
 
         // on enregistre les étapes
         if (!serviceCreateDto.getSteps().isEmpty()) {
@@ -73,12 +73,11 @@ public class ServiceServImpl implements ServiceService {
                         .description(stepCreateDto.getDescription())
                         .order(stepCreateDto.getOrder())
                         .enabled(stepCreateDto.getEnabled())
-                        .serviceId(service.getId())
                         .service(service)
                         .build();
 
                 step.setId(counterService.getNextSequence(GlobalParams.STEP_COLLECTION_NAME));
-                stepRepository.save(step);
+                stepInputDS.save(step);
                 service.getSteps().add(step);
             }
         }
@@ -90,12 +89,11 @@ public class ServiceServImpl implements ServiceService {
                 NeededDocument neededDocument = NeededDocument.builder()
                         .name(neededDocumentCreateDto.getName())
                         .enabled(neededDocumentCreateDto.getEnabled())
-                        .serviceId(service.getId())
                         .service(service)
                         .build();
 
                 neededDocument.setId(counterService.getNextSequence(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME));
-                neededDocumentRepository.save(neededDocument);
+                neededDocumentInputDS.save(neededDocument);
                 service.getNeededDocuments().add(neededDocument);
             }
         }
@@ -105,13 +103,13 @@ public class ServiceServImpl implements ServiceService {
 
     @Override
     public ServiceReturnDto update(Long idValue, ServiceUpdateDto serviceUpdateDto) {
-        com.scisk.sciskbackend.entity.Service service = serviceRepository.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        com.scisk.sciskbackend.entity.Service service = serviceInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
 
         service.setName(serviceUpdateDto.getName());
         service.setDescription(serviceUpdateDto.getDescription());
         service.setEnabled(serviceUpdateDto.getEnabled());
 
-        service = serviceRepository.save(service);
+        service = serviceInputDS.save(service);
         return ServiceReturnDto.map(service);
     }
 
@@ -240,10 +238,9 @@ public class ServiceServImpl implements ServiceService {
                 .order(stepCreateDto.getOrder())
                 .enabled(stepCreateDto.getEnabled())
                 .service(service)
-                .serviceId(service.getId())
                 .build();
 
-        return StepReturnDto.map(stepRepository.save(step));
+        return StepReturnDto.map(stepInputDS.save(step));
     }
 
     @Override
@@ -254,18 +251,17 @@ public class ServiceServImpl implements ServiceService {
                 .id(counterService.getNextSequence(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME))
                 .name(neededDocumentCreateDto.getName())
                 .enabled(neededDocumentCreateDto.getEnabled())
-                .serviceId(service.getId())
                 .service(service)
                 .build();
 
-        return NeededDocumentReturnDto.map(neededDocumentRepository.save(neededDocument));
+        return NeededDocumentReturnDto.map(neededDocumentInputDS.save(neededDocument));
     }
 
     @Override
     public StepReturnDto updateStep(Long idValue, Long stepIdValue, StepCreateDto stepCreateDto) {
-        Step step = stepRepository.findById(stepIdValue).orElseThrow(() -> new ObjectNotFoundException("stepId"));
+        Step step = stepInputDS.findById(stepIdValue).orElseThrow(() -> new ObjectNotFoundException("stepId"));
 
-        if (!step.getServiceId().equals(idValue)) {
+        if (!step.getService().getId().equals(idValue)) {
             throw new ObjectNotFoundException("service.id");
         }
 
@@ -274,21 +270,21 @@ public class ServiceServImpl implements ServiceService {
         step.setOrder(stepCreateDto.getOrder());
         step.setEnabled(stepCreateDto.getEnabled());
 
-        return StepReturnDto.map(stepRepository.save(step));
+        return StepReturnDto.map(stepInputDS.save(step));
     }
 
     @Override
     public NeededDocumentReturnDto updateNeededDocument(Long idValue, Long neededDocumentIdValue, NeededDocumentCreateDto neededDocumentCreateDto) {
-        NeededDocument neededDocument = neededDocumentRepository.findById(neededDocumentIdValue).orElseThrow(() -> new ObjectNotFoundException("neededDocumentId"));
+        NeededDocument neededDocument = neededDocumentInputDS.findById(neededDocumentIdValue).orElseThrow(() -> new ObjectNotFoundException("neededDocumentId"));
 
-        if (!neededDocument.getServiceId().equals(idValue)) {
+        if (!neededDocument.getService().getId().equals(idValue)) {
             throw new ObjectNotFoundException("service.id");
         }
 
         neededDocument.setName(neededDocumentCreateDto.getName());
         neededDocument.setEnabled(neededDocumentCreateDto.getEnabled());
 
-        return NeededDocumentReturnDto.map(neededDocumentRepository.save(neededDocument));
+        return NeededDocumentReturnDto.map(neededDocumentInputDS.save(neededDocument));
     }
 
     @Override

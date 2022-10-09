@@ -3,7 +3,7 @@ package com.scisk.sciskbackend.service;
 import com.scisk.sciskbackend.dto.*;
 import com.scisk.sciskbackend.entity.*;
 import com.scisk.sciskbackend.exception.ObjectNotFoundException;
-import com.scisk.sciskbackend.repository.*;
+import com.scisk.sciskbackend.inputdatasource.*;
 import com.scisk.sciskbackend.util.GlobalParams;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.*;
@@ -27,51 +27,51 @@ public class PaymentServImpl implements PaymentService {
 
     private CounterService counterService;
     private final MongoTemplate mongoTemplate;
-    private final RecordRepository recordRepository;
-    private final PaymentRepository paymentRepository;
+    private final RecordInputDS recordInputDS;
+    private final PaymentInputDS paymentInputDS;
     private final ServiceService serviceService;
-    private final RecordStepRepository recordStepRepository;
-    private final JobRepository jobRepository;
-    private final RecordJobRepository recordJobRepository;
+    private final RecordStepInputDS recordStepInputDS;
+    private final JobInputDS jobInputDS;
+    private final RecordJobInputDS recordJobInputDS;
 
     public PaymentServImpl(
             CounterService counterService,
             MongoTemplate mongoTemplate,
-            RecordRepository recordRepository,
-            PaymentRepository paymentRepository,
+            RecordInputDS recordInputDS,
+            PaymentInputDS paymentInputDS,
             ServiceService serviceService,
-            RecordStepRepository recordStepRepository,
-            JobRepository jobRepository,
-            RecordJobRepository recordJobRepository) {
+            RecordStepInputDS recordStepInputDS,
+            JobInputDS jobInputDS,
+            RecordJobInputDS recordJobInputDS) {
         this.counterService = counterService;
         this.mongoTemplate = mongoTemplate;
-        this.recordRepository = recordRepository;
-        this.paymentRepository = paymentRepository;
+        this.recordInputDS = recordInputDS;
+        this.paymentInputDS = paymentInputDS;
         this.serviceService = serviceService;
-        this.recordStepRepository = recordStepRepository;
-        this.jobRepository = jobRepository;
-        this.recordJobRepository = recordJobRepository;
+        this.recordStepInputDS = recordStepInputDS;
+        this.jobInputDS = jobInputDS;
+        this.recordJobInputDS = recordJobInputDS;
     }
 
 
     @Override
     public PaymentReturnDto create(PaymentCreateDto paymentCreateDto) {
-        Record record = recordRepository.findById(paymentCreateDto.getRecordId()).orElseThrow(() -> new ObjectNotFoundException("recordId"));
+        Record record = recordInputDS.findById(paymentCreateDto.getRecordId()).orElseThrow(() -> new ObjectNotFoundException("recordId"));
 
         Payment payment = Payment.builder()
                 .id(counterService.getNextSequence(GlobalParams.PAYMENT_COLLECTION_NAME))
                 .paymentDate(paymentCreateDto.getPaymentDate())
                 .amount(paymentCreateDto.getAmount())
                 .observation(paymentCreateDto.getObservation())
-                .recordId(paymentCreateDto.getRecordId())
+                .record(record)
                 .build();
-        paymentRepository.save(payment);
+        paymentInputDS.save(payment);
 
         // si les paiements sur le dossier atteignent le motant minimum de traitement de dossier on marque le dossier comme payé
-        List<Payment> paymentList = paymentRepository.findByRecordId(record.getId());
+        List<Payment> paymentList = paymentInputDS.findByRecordId(record.getId());
         if (!paymentList.isEmpty() && paymentList.stream().mapToDouble(Payment::getAmount).sum() >= GlobalParams.MIN_AMOUNT_FOR_RECORD_OPENING) {
             record.setPaid(true);
-            recordRepository.save(record);
+            recordInputDS.save(record);
         }
 
         // on créé les étapes et les taches du dossier
@@ -82,17 +82,17 @@ public class PaymentServImpl implements PaymentService {
 
     @Override
     public PaymentReturnDto update(Long idValue, PaymentCreateDto paymentCreateDto) {
-        Payment payment = paymentRepository.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
-        Record record = recordRepository.findById(paymentCreateDto.getRecordId()).orElseThrow(() -> new ObjectNotFoundException("recordId"));
+        Payment payment = paymentInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        Record record = recordInputDS.findById(paymentCreateDto.getRecordId()).orElseThrow(() -> new ObjectNotFoundException("recordId"));
 
         payment.setPaymentDate(paymentCreateDto.getPaymentDate());
         payment.setAmount(paymentCreateDto.getAmount());
         payment.setObservation(paymentCreateDto.getObservation());
-        payment.setRecordId(paymentCreateDto.getRecordId());
-        paymentRepository.save(payment);
+        payment.setRecord(record);
+        paymentInputDS.save(payment);
 
         // on vérifie si le dossier a déja des étapes ; si non on créé
-        List<RecordStep> recordSteps = recordStepRepository.findAllByRecordId(record.getId());
+        List<RecordStep> recordSteps = recordStepInputDS.findAllByRecordId(record.getId());
         if (recordSteps.isEmpty()) {
             // on créé les étapes et les taches du dossier
             createRecordStepsAndJobs(record);
@@ -155,13 +155,13 @@ public class PaymentServImpl implements PaymentService {
 
     @Override
     public void delete(Long idValue) {
-        Payment payment = paymentRepository.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
-        paymentRepository.delete(payment);
+        Payment payment = paymentInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        paymentInputDS.delete(payment);
     }
 
     public void createRecordStepsAndJobs(Record record) {
         // on créé les étapes du dossier
-        com.scisk.sciskbackend.entity.Service service = serviceService.getById(record.getServiceId());
+        com.scisk.sciskbackend.entity.Service service = serviceService.getById(record.getService().getId());
         RecordStep recordStep;
         record.setRecordSteps(new ArrayList<>());
         for (Step step : service.getSteps()) {
@@ -169,28 +169,28 @@ public class PaymentServImpl implements PaymentService {
                     .id(counterService.getNextSequence(GlobalParams.STEP_COLLECTION_NAME))
                     .name(step.getName())
                     .observation(step.getDescription())
-                    .recordId(record.getId())
-                    .stepId(step.getId())
+                    .record(record)
+                    .step(step)
                     .build();
             record.getRecordSteps().add(recordStep);
         }
-        recordStepRepository.saveAll(record.getRecordSteps());
+        recordStepInputDS.saveAll(record.getRecordSteps());
 
         // on créé les taches
         RecordJob recordJob;
         List<Job> jobs;
         for (RecordStep recStep : record.getRecordSteps()) {
-            jobs = jobRepository.findAllByStepId(recStep.getStepId());
+            jobs = jobInputDS.findAllByStepId(recStep.getStep().getId());
             recStep.setRecordJobs(new ArrayList<>());
             for (Job job : jobs) {
                 recordJob = RecordJob.builder()
                         .id(counterService.getNextSequence(GlobalParams.JOB_COLLECTION_NAME))
-                        .recordStepId(recStep.getId())
-                        .jobId(job.getId())
+                        .recordStep(recStep)
+                        .job(job)
                         .build();
                 recStep.getRecordJobs().add(recordJob);
             }
-            recordJobRepository.saveAll(recStep.getRecordJobs());
+            recordJobInputDS.saveAll(recStep.getRecordJobs());
         }
     }
 }

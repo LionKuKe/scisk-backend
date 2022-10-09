@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.Instant;
+import java.util.Objects;
 
 @Data
 @Builder
@@ -27,8 +28,8 @@ public class RecordStepReturnDto {
                 .name(recordStep.getName())
                 .observation(recordStep.getObservation())
                 .endDate(recordStep.getEndDate())
-                .recordId(recordStep.getRecordId())
-                .stepId(recordStep.getStepId())
+                .recordId(Objects.isNull(recordStep.getRecord()) ? null : recordStep.getRecord().getId())
+                .stepId(Objects.isNull(recordStep.getStep()) ? null : recordStep.getStep().getId())
                 .build();
     }
 }
