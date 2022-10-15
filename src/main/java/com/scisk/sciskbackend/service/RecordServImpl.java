@@ -7,6 +7,11 @@ import com.scisk.sciskbackend.exception.ObjectNotFoundException;
 import com.scisk.sciskbackend.inputdatasource.*;
 import com.scisk.sciskbackend.util.AuthenticationUtil;
 import com.scisk.sciskbackend.util.GlobalParams;
+import org.apache.commons.io.FilenameUtils;
+import org.bson.BsonBinarySubType;
+import org.bson.types.Binary;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.*;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -14,10 +19,19 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.URLConnection;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -94,7 +108,7 @@ public class RecordServImpl implements RecordService {
     public RecordReturnDto update(Long idValue, RecordCreateDto recordCreateDto) {
         User customer = userInputDS.findById(recordCreateDto.getCustomerId()).orElseThrow(() -> new ObjectNotFoundException("customerId"));
         com.scisk.sciskbackend.entity.Service service = serviceService.getById(recordCreateDto.getServiceId());
-        Record record = recordInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        Record record = getById(idValue);
         if (record.getPaid()) {
             throw new ObjectExistsException("record.already.paid");
         }
@@ -253,11 +267,65 @@ public class RecordServImpl implements RecordService {
 
     @Override
     public RecordReturnDto suspend(Long idValue, String reason) {
-        Record record = recordInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
+        Record record = getById(idValue);
         record.setSuspended(true);
         record.setSuspensionDate(Instant.now());
         record.setSuspensionReason(reason);
         recordInputDS.save(record);
         return RecordReturnDto.map(record);
+    }
+
+    @Override
+    public void uploadDocument(Long id, MultipartFile file, String name, Long neededDocumentId) {
+        Record record = getById(id);
+        NeededDocument neededDocument = neededDocumentInputDS.findById(neededDocumentId).orElseThrow(() -> new ObjectNotFoundException("neddedDocumentId"));
+        if (Objects.isNull(record.getDocuments())) {
+            record.setDocuments(new ArrayList<>());
+        }
+        try {
+            Document document = Document.builder()
+                    .id(counterService.getNextSequence(GlobalParams.DOCUMENT_COLLECTION_NAME))
+                    .name(name)
+                    .extension(FilenameUtils.getExtension(file.getOriginalFilename()))
+                    .content(new Binary(BsonBinarySubType.BINARY, file.getBytes()))
+                    .neededDocumentId(neededDocument.getId())
+                    .build();
+            record.getDocuments().add(document);
+            recordInputDS.save(record);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteDocument(Long id, Long documentId) {
+        Record record = getById(id);
+        record.getDocuments().stream().filter(document -> document.getId().equals(documentId)).findFirst().orElseThrow(() -> new ObjectNotFoundException("documentId"));
+        List<Document> documents = record.getDocuments().stream().filter(document -> !document.getId().equals(documentId)).collect(Collectors.toList());
+        record.setDocuments(documents);
+        recordInputDS.save(record);
+    }
+
+    @Override
+    public ResponseEntity<Resource> downloadDocument(HttpServletRequest request, Long documentId) {
+        Record record = recordInputDS.findByDocumentId(documentId).orElseThrow(() -> new ObjectNotFoundException("documentId"));
+        Document document = record.getDocuments().stream().filter(document1 -> document1.getId().equals(documentId)).findFirst().orElseThrow(() -> new ObjectNotFoundException("documentId"));
+
+        Resource resource = new ByteArrayResource(document.getContent().getData(), document.getName());
+
+        // Try to determine file's content type
+        String contentType = URLConnection.guessContentTypeFromName(resource.getFilename());
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_TYPE, contentType);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, resource.getFilename());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .headers(headers)
+                .body(resource);
     }
 }

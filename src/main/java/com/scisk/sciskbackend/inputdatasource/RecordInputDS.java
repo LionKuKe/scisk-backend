@@ -15,4 +15,6 @@ public interface RecordInputDS {
     Record save(Record record);
 
     Optional<Record> findById(Long idValue);
+
+    Optional<Record> findByDocumentId(Long documentId);
 }

@@ -44,4 +44,9 @@ public class RecordInputDSImpl implements RecordInputDS {
     public Optional<Record> findById(Long idValue) {
         return recordRepository.findById(idValue).map(RecordDS::map);
     }
+
+    @Override
+    public Optional<Record> findByDocumentId(Long documentId) {
+        return recordRepository.findByDocumentId(documentId).map(RecordDS::map);
+    }
 }

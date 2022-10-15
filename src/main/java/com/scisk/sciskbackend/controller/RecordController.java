@@ -3,6 +3,7 @@ package com.scisk.sciskbackend.controller;
 import com.scisk.sciskbackend.dto.*;
 import com.scisk.sciskbackend.service.RecordService;
 import com.scisk.sciskbackend.util.Util;
+import com.scisk.sciskbackend.util.response.OperationResponse;
 import com.scisk.sciskbackend.util.response.PageObjectResponse;
 import com.scisk.sciskbackend.util.response.SimpleObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,11 +15,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.net.URLConnection;
 
 @RestController()
 @RequestMapping("record/")
@@ -136,6 +147,58 @@ public class RecordController {
     ) {
         Long idValue = Util.convertStringToLong(id);
         return ResponseEntity.ok(new SimpleObjectResponse<>("record.suspended", recordService.suspend(idValue, stringDto.getValue())));
+    }
+
+    @Operation(summary = "Importer un document sur un dossier")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Le document a été importé avec succès")
+    })
+    @PostMapping(value = "/upload/{id}/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
+    public ResponseEntity<OperationResponse> uploadDocument(
+            @Parameter(description = "Id du dossier sur lequel on importe le document", required = true)
+            @PathVariable String id,
+
+            @NotNull @RequestParam("file") MultipartFile file,
+
+            @Parameter(description = "Nom du document", required = true)
+            @NotBlank @RequestParam("name") String name,
+
+            @Parameter(description = "Id du type de document importé", required = true)
+            @NotBlank @RequestParam("neededDocumentId") String neededDocumentId
+    ) {
+        Long idValue = Util.convertStringToLong(id);
+        Long neededDocumentIdValue = Util.convertStringToLong(neededDocumentId);
+        recordService.uploadDocument(idValue, file, name, neededDocumentIdValue);
+        return ResponseEntity.ok(new OperationResponse("document.uploaded"));
+    }
+
+    @Operation(summary = "Supprimer un document")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Le document a été bien supprimé"),
+            @ApiResponse(responseCode = "404", description = "Le dossier ou le doument n'a pas été retrouvé")
+    })
+    @DeleteMapping("/delete/{id}/documents/{documentId}")
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
+    public ResponseEntity<OperationResponse> deleteDocument(
+            @PathVariable String id,
+            @PathVariable String documentId
+    ) {
+        Long idValue = Util.convertStringToLong(id);
+        Long documentIdValue = Util.convertStringToLong(documentId);
+        recordService.deleteDocument(idValue, documentIdValue);
+        return ResponseEntity.ok(new OperationResponse("document.deleted"));
+    }
+
+    @Operation(summary = "Télécharger un document")
+    @GetMapping(value = "/download/documents/{documentId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
+    public ResponseEntity<Resource> downloadDocument(
+            @PathVariable String documentId,
+            HttpServletRequest request
+    ) {
+        Long documentIdValue = Util.convertStringToLong(documentId);
+        return recordService.downloadDocument(request, documentIdValue);
     }
 
 }

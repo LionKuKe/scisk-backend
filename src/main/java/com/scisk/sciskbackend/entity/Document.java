@@ -1,7 +1,7 @@
 package com.scisk.sciskbackend.entity;
 
 import lombok.*;
-import org.springframework.data.annotation.Transient;
+import org.bson.types.Binary;
 
 @Builder
 @Getter
@@ -9,13 +9,11 @@ import org.springframework.data.annotation.Transient;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Document {
+	private Long id;
 	private String name;
-	private String path;
 	private String extension;
-	
-	private Record record;
+	private Binary content;
 
-	@Transient
 	private NeededDocument neededDocument;
 	private Long neededDocumentId;
 }

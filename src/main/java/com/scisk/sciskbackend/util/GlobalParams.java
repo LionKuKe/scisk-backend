@@ -16,6 +16,7 @@ public interface GlobalParams {
 	public static String STEP_COLLECTION_NAME = "step";
 	public static String JOB_COLLECTION_NAME = "job";
 	public static String NEEDED_DOCUMENT_COLLECTION_NAME = "neededdocument";
+	public static String DOCUMENT_COLLECTION_NAME = "document";
 
 	public static Integer MAX_RECORD_NUMBER_OF_DIGIT_PER_MONTH = 3;
 
