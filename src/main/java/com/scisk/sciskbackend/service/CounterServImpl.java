@@ -44,7 +44,7 @@ public class CounterServImpl implements CounterService {
     public String getNextCodeOfCollection(String collectionName) {
         Instant now = Instant.now();
         int year = Util.getYearFromInstant(now);
-        int month = Util.getMonthFromInstant(now);
+        int month = Util.getMonthFromInstant(now) + 1;
         int day = Util.getDayOfMonthFromInstant(now);
         Instant start = Util.getFirstDayOfMonth( year , Month.of(month) );
         Instant end = Util.getLastDayOfMonth(year, Month.of(month));

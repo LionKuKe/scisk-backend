@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface RecordStepRepository extends MongoRepository<RecordStepDS, Long> {
 
-    @Query("{recordId:'?0'}")
+    @Query("{recordId: ?0}")
     List<RecordStepDS> findAllByRecordId(Long recordId);
 
 }

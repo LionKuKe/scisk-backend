@@ -33,6 +33,7 @@ public class PaymentServImpl implements PaymentService {
     private final RecordStepInputDS recordStepInputDS;
     private final JobInputDS jobInputDS;
     private final RecordJobInputDS recordJobInputDS;
+    private final RecordService recordService;
 
     public PaymentServImpl(
             CounterService counterService,
@@ -42,7 +43,7 @@ public class PaymentServImpl implements PaymentService {
             ServiceService serviceService,
             RecordStepInputDS recordStepInputDS,
             JobInputDS jobInputDS,
-            RecordJobInputDS recordJobInputDS) {
+            RecordJobInputDS recordJobInputDS, RecordService recordService) {
         this.counterService = counterService;
         this.mongoTemplate = mongoTemplate;
         this.recordInputDS = recordInputDS;
@@ -51,12 +52,13 @@ public class PaymentServImpl implements PaymentService {
         this.recordStepInputDS = recordStepInputDS;
         this.jobInputDS = jobInputDS;
         this.recordJobInputDS = recordJobInputDS;
+        this.recordService = recordService;
     }
 
 
     @Override
     public PaymentReturnDto create(PaymentCreateDto paymentCreateDto) {
-        Record record = recordInputDS.findById(paymentCreateDto.getRecordId()).orElseThrow(() -> new ObjectNotFoundException("recordId"));
+        Record record = recordService.getById(paymentCreateDto.getRecordId());
 
         Payment payment = Payment.builder()
                 .id(counterService.getNextSequence(GlobalParams.PAYMENT_COLLECTION_NAME))
@@ -69,13 +71,16 @@ public class PaymentServImpl implements PaymentService {
 
         // si les paiements sur le dossier atteignent le motant minimum de traitement de dossier on marque le dossier comme payé
         List<Payment> paymentList = paymentInputDS.findByRecordId(record.getId());
-        if (!paymentList.isEmpty() && paymentList.stream().mapToDouble(Payment::getAmount).sum() >= GlobalParams.MIN_AMOUNT_FOR_RECORD_OPENING) {
+        Double paidAmount = paymentCreateDto.getAmount() + (paymentList.isEmpty() ? 0 : paymentList.stream().mapToDouble(Payment::getAmount).sum());
+        if (GlobalParams.MIN_AMOUNT_FOR_RECORD_OPENING.compareTo(paidAmount) < 0) {
             record.setPaid(true);
             recordInputDS.save(record);
         }
 
         // on créé les étapes et les taches du dossier
-        createRecordStepsAndJobs(record);
+        if (Objects.isNull(record.getRecordSteps()) || record.getRecordSteps().size() == 0) {
+            createRecordStepsAndJobs(record);
+        }
 
         return PaymentReturnDto.map(payment);
     }
@@ -83,7 +88,7 @@ public class PaymentServImpl implements PaymentService {
     @Override
     public PaymentReturnDto update(Long idValue, PaymentCreateDto paymentCreateDto) {
         Payment payment = paymentInputDS.findById(idValue).orElseThrow(() -> new ObjectNotFoundException("id"));
-        Record record = recordInputDS.findById(paymentCreateDto.getRecordId()).orElseThrow(() -> new ObjectNotFoundException("recordId"));
+        Record record = recordService.getById(paymentCreateDto.getRecordId());
 
         payment.setPaymentDate(paymentCreateDto.getPaymentDate());
         payment.setAmount(paymentCreateDto.getAmount());
@@ -91,10 +96,18 @@ public class PaymentServImpl implements PaymentService {
         payment.setRecord(record);
         paymentInputDS.save(payment);
 
-        // on vérifie si le dossier a déja des étapes ; si non on créé
-        List<RecordStep> recordSteps = recordStepInputDS.findAllByRecordId(record.getId());
-        if (recordSteps.isEmpty()) {
-            // on créé les étapes et les taches du dossier
+        // si les paiements sur le dossier atteignent le motant minimum de traitement de dossier on marque le dossier comme payé
+        List<Payment> paymentList = paymentInputDS.findByRecordId(record.getId());
+        Double paidAmount = paymentCreateDto.getAmount() + (paymentList.isEmpty() ? 0 : paymentList.stream().filter(pay->!pay.getId().equals(idValue)).mapToDouble(Payment::getAmount).sum());
+        if (GlobalParams.MIN_AMOUNT_FOR_RECORD_OPENING.compareTo(paidAmount) < 0) {
+            record.setPaid(true);
+        } else {
+            record.setPaid(false);
+        }
+        recordInputDS.save(record);
+
+        // on créé les étapes et les taches du dossier
+        if (Objects.isNull(record.getRecordSteps()) || record.getRecordSteps().size() == 0) {
             createRecordStepsAndJobs(record);
         }
 
@@ -103,10 +116,11 @@ public class PaymentServImpl implements PaymentService {
 
     @Override
     public Page<PaymentReturnDto> findAllPaymentByFilters(Integer page, Integer size, String observation, Long recordId) {
-        Pageable pageable = PageRequest.of(
-                Objects.isNull(page) ? 0 : page - 1,
-                Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size
-        );
+        int pageNumber = Objects.isNull(page) ? 0 : page - 1;
+        int pageSize = Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+        AggregationOperation lookupAggRecord = Aggregation.lookup("record", "recordId", "_id", "record");
 
         Query query = new Query();
         query.with(pageable);
@@ -120,37 +134,35 @@ public class PaymentServImpl implements PaymentService {
             criteria.and("recordId").is(recordId);
         }
 
-        query.addCriteria(criteria);
-        List<Payment> payments = mongoTemplate.find(query, Payment.class);
+        AggregationOperation matchAgg = Aggregation.match(criteria);
+
+        AggregationOperation unwindAggRecord = Aggregation.unwind("record", true);
+
+        AggregationOperation sortAgg = Aggregation.sort(Sort.Direction.DESC, "createdOn");
+        AggregationOperation skipAgg = Aggregation.skip(pageNumber * pageSize);
+        AggregationOperation limitAgg = Aggregation.limit(pageSize);
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                lookupAggRecord,
+                matchAgg,
+                unwindAggRecord,
+                sortAgg, skipAgg, limitAgg
+        );
+
+        // query database
+        AggregationResults<Payment> obj = mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(Payment.class), Payment.class);
+        java.util.List<Payment> results = obj.getMappedResults();
 
         return new PageImpl<>(
-                payments.stream().map(PaymentReturnDto::map).collect(Collectors.toList()),
+                results.stream().map(PaymentReturnDto::map).collect(Collectors.toList()),
                 pageable,
-                mongoTemplate.count(query, Payment.class)
+                mongoTemplate.count(new Query(criteria), Record.class)
         );
     }
 
     @Override
     public PaymentReturnDto findById(Long idValue) {
-        AggregationOperation lookupAggSteps = Aggregation.lookup("record", "recordId", "_id", "records");
-
-        // create criteria filters
-        Criteria criteria = new Criteria();
-        criteria.and("_id").is(idValue);
-
-        // create match aggregation
-        AggregationOperation matchAgg = Aggregation.match(criteria);
-
-        // final aggreagation
-        Aggregation aggregation = Aggregation.newAggregation(lookupAggSteps, matchAgg);
-
-        // query database
-        AggregationResults<Payment> obj = mongoTemplate.aggregate(
-                aggregation, GlobalParams.PAYMENT_COLLECTION_NAME, com.scisk.sciskbackend.entity.Payment.class
-        );
-        java.util.List<Payment> results = obj.getMappedResults();
-
-        return results.stream().map(PaymentReturnDto::map).findFirst().orElseThrow(() -> new ObjectNotFoundException("id"));
+        return paymentInputDS.findById(idValue).map(PaymentReturnDto::map).orElseThrow( () -> new ObjectNotFoundException("id"));
     }
 
     @Override

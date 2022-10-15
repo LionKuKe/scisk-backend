@@ -53,17 +53,17 @@ public class RecordDS {
         return Record.builder()
                 .id(recordDS.getId())
                 .code(recordDS.getCode())
-                .customer(UserDS.map(recordDS.getCustomer()))
-                .manager(UserDS.map(recordDS.getManager()))
-                .service(ServiceDS.map(recordDS.getService()))
+                .customer(Objects.isNull(recordDS.getCustomer()) ? null : UserDS.map(recordDS.getCustomer()))
+                .manager(Objects.isNull(recordDS.getManager()) ? null : UserDS.map(recordDS.getManager()))
+                .service(Objects.isNull(recordDS.getService()) ? null : ServiceDS.map(recordDS.getService()))
                 .createdOn(recordDS.getCreatedOn())
                 .suspended(recordDS.getSuspended())
                 .suspensionDate(recordDS.getSuspensionDate())
                 .suspensionReason(recordDS.getSuspensionReason())
                 .paid(recordDS.getPaid())
-                .payments(recordDS.getPayments().stream().map(PaymentDS::map).collect(Collectors.toList()))
+                .payments(Objects.isNull(recordDS.getPayments()) ? null : recordDS.getPayments().stream().map(PaymentDS::map).collect(Collectors.toList()))
                 .documents(recordDS.getDocuments())
-                .recordSteps(recordDS.getRecordSteps().stream().map(RecordStepDS::map).collect(Collectors.toList()))
+                .recordSteps(Objects.isNull(recordDS.getRecordSteps()) ? null : recordDS.getRecordSteps().stream().map(RecordStepDS::map).collect(Collectors.toList()))
                 .build();
     }
 

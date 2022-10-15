@@ -108,7 +108,7 @@ public class PaymentController {
             @ApiResponse(responseCode = "200", description = "Suppression réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PaymentReturnDto.class)))),
             @ApiResponse(responseCode = "404", description = "Le paiement n'a pas été trouvé")
     })
-    @PutMapping("/suspend/{id}")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAnyAuthority('CHIEF', 'ADMINISTRATOR')")
     public ResponseEntity<SimpleObjectResponse<PaymentReturnDto>> delete(
             @Parameter(description = "Id du paiement à supprimer", required = true)
@@ -116,7 +116,7 @@ public class PaymentController {
     ) {
         Long idValue = Util.convertStringToLong(id);
         paymentService.delete(idValue);
-        return ResponseEntity.ok(new SimpleObjectResponse<>("record.suspended", null));
+        return ResponseEntity.ok(new SimpleObjectResponse<>("payment.deleted", null));
     }
 
 }

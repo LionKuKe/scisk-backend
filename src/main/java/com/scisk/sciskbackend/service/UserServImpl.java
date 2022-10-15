@@ -246,7 +246,8 @@ public class UserServImpl implements UserService {
         }
 
         // on teste l'existence de l'adresse email
-        if (!userInputDS.existsByEmail(userUpdateDto.getEmail()).isEmpty()) {
+        List<User> userList = userInputDS.existsByEmail(userUpdateDto.getEmail());
+        if (!userList.isEmpty() && !userList.get(0).getId().equals(id)) {
             throw new ObjectExistsException("email.already.exists");
         }
 

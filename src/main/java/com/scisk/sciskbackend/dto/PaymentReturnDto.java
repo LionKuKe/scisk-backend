@@ -19,6 +19,7 @@ public class PaymentReturnDto {
     private Double amount;
     private String observation;
     private Long recordId;
+    private String recordCode;
 
     public static PaymentReturnDto map(Payment payment) {
         return PaymentReturnDto.builder()
@@ -27,6 +28,7 @@ public class PaymentReturnDto {
                 .amount(payment.getAmount())
                 .observation(payment.getObservation())
                 .recordId(Objects.isNull(payment.getRecord()) ? null : payment.getRecord().getId())
+                .recordCode(Objects.isNull(payment.getRecord()) ? null : payment.getRecord().getCode())
                 .build();
     }
 }

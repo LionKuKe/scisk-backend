@@ -3,11 +3,15 @@ package com.scisk.sciskbackend.inputdatasource;
 import com.scisk.sciskbackend.datasourceentity.UserDS;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Transactional
+@Service
 public class UserInputDSImpl implements UserInputDS {
 
     private final UserRepository userRepository;

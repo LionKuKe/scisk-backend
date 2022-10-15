@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Builder
@@ -36,8 +37,8 @@ public class ServiceDS {
                 .description(serviceDS.getDescription())
                 .enabled(serviceDS.getEnabled())
                 .createdOn(serviceDS.getCreatedOn())
-                .neededDocuments(serviceDS.getNeededDocuments().stream().map(NeededDocumentDS::map).collect(Collectors.toList()))
-                .steps(serviceDS.getSteps().stream().map(StepDS::map).collect(Collectors.toList()))
+                .neededDocuments(Objects.isNull(serviceDS.getNeededDocuments()) ? null : serviceDS.getNeededDocuments().stream().map(NeededDocumentDS::map).collect(Collectors.toList()))
+                .steps(Objects.isNull(serviceDS.getSteps()) ? null : serviceDS.getSteps().stream().map(StepDS::map).collect(Collectors.toList()))
                 .build();
     }
 

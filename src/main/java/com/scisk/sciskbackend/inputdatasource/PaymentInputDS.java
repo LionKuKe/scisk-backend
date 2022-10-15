@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface PaymentInputDS {
     List<Payment> findByRecordId(Long recordId);
+
     void save(Payment payment);
 
     Optional<Payment> findById(Long idValue);

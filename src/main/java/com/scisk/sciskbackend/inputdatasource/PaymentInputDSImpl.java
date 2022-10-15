@@ -3,11 +3,15 @@ package com.scisk.sciskbackend.inputdatasource;
 import com.scisk.sciskbackend.datasourceentity.PaymentDS;
 import com.scisk.sciskbackend.entity.Payment;
 import com.scisk.sciskbackend.repository.PaymentRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Transactional
+@Service
 public class PaymentInputDSImpl implements PaymentInputDS {
 
     private final PaymentRepository paymentRepository;

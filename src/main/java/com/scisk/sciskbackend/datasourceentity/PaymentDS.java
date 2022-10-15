@@ -32,7 +32,7 @@ public class PaymentDS {
                 .paymentDate(paymentDS.getPaymentDate())
                 .amount(paymentDS.getAmount())
                 .observation(paymentDS.getObservation())
-                .record(RecordDS.map(paymentDS.getRecord()))
+                .record(Objects.isNull(paymentDS.getRecord()) ? null : RecordDS.map(paymentDS.getRecord()))
                 .build();
     }
 

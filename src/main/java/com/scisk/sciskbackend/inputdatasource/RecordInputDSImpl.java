@@ -3,12 +3,16 @@ package com.scisk.sciskbackend.inputdatasource;
 import com.scisk.sciskbackend.datasourceentity.RecordDS;
 import com.scisk.sciskbackend.entity.Record;
 import com.scisk.sciskbackend.repository.RecordRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Transactional
+@Service
 public class RecordInputDSImpl implements RecordInputDS {
 
     private final RecordRepository recordRepository;

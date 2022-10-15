@@ -3,11 +3,14 @@ package com.scisk.sciskbackend.inputdatasource;
 import com.scisk.sciskbackend.datasourceentity.ServiceDS;
 import com.scisk.sciskbackend.entity.Service;
 import com.scisk.sciskbackend.repository.ServiceRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Transactional
+@org.springframework.stereotype.Service
 public class ServiceInputDSImpl implements ServiceInputDS {
 
     private final ServiceRepository serviceRepository;

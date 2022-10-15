@@ -54,7 +54,7 @@ public class ServiceController {
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
     public ResponseEntity<SimpleObjectResponse<ServiceReturnDto>> update(
-            @Parameter(description = "Données du service", required = true, schema = @Schema(implementation = ServiceCreateDto.class))
+            @Parameter(description = "Données du service", required = true, schema = @Schema(implementation = ServiceUpdateDto.class))
             @RequestBody ServiceUpdateDto serviceUpdateDto,
 
             @Parameter(description = "Id du service à modifier", required = true)

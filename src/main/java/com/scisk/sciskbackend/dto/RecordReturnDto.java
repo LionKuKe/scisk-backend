@@ -30,6 +30,14 @@ public class RecordReturnDto {
 
     private Instant createdOn;
 
+    private Boolean paid;
+
+    private Boolean suspended;
+
+    private Instant suspensionDate;
+
+    private String suspensionReason;
+
     private List<PaymentReturnDto> payments;
 
     private List<com.scisk.sciskbackend.entity.Document> documents;
@@ -45,7 +53,11 @@ public class RecordReturnDto {
                 .managerId(record.getManager().orElse(User.builder().build()).getId())
                 .managerName(record.getManager().isEmpty() ? null : record.getManager().get().getName())
                 .serviceId(Objects.isNull(record.getService()) ? null : record.getService().getId())
-                .serviceName(record.getService().getName())
+                .serviceName(Objects.isNull(record.getService()) ? null : record.getService().getName())
+                .paid(record.getPaid())
+                .suspended(record.getSuspended())
+                .suspensionDate(record.getSuspensionDate())
+                .suspensionReason(record.getSuspensionReason())
                 .createdOn(record.getCreatedOn())
                 .documents(record.getDocuments())
                 .payments(

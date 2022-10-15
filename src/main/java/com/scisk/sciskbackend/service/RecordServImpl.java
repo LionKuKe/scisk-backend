@@ -106,14 +106,16 @@ public class RecordServImpl implements RecordService {
 
     @Override
     public Page<RecordReturnDto> findAllRecordByFilters(Integer page, Integer size) {
-        Pageable pageable = PageRequest.of(
-                Objects.isNull(page) ? 0 : page - 1,
-                Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size
-        );
+        int pageNumber = Objects.isNull(page) ? 0 : page - 1;
+        int pageSize = Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "createdOn");
 
         // create lookup aggregations
         AggregationOperation lookupAggPayments = Aggregation.lookup("payment", "_id", "recordId", "payments");
         AggregationOperation lookupAggRecordSteps = Aggregation.lookup("recordstep", "_id", "recordId", "recordSteps");
+        AggregationOperation lookupAggCustomer = Aggregation.lookup("user", "customerId", "_id", "customer");
+        AggregationOperation lookupAggManager = Aggregation.lookup("user", "managerId", "_id", "manager");
+        AggregationOperation lookupAggService = Aggregation.lookup("service", "serviceId", "_id", "service");
 
         // create criteria filters
         Criteria criteria = new Criteria();
@@ -122,8 +124,28 @@ public class RecordServImpl implements RecordService {
         // create match aggregation
         AggregationOperation matchAgg = Aggregation.match(criteria);
 
+        // unwind aggregation
+        AggregationOperation unwindAggCustomer = Aggregation.unwind("customer", true);
+        AggregationOperation unwindAggService = Aggregation.unwind("service", true);
+        AggregationOperation unwindAggManager = Aggregation.unwind("manager", true);
+
+        AggregationOperation sortAgg = Aggregation.sort(Sort.Direction.DESC, "createdOn");
+        AggregationOperation skipAgg = Aggregation.skip(pageNumber * pageSize);
+        AggregationOperation limitAgg = Aggregation.limit(pageSize);
+
         // final aggreagation
-        Aggregation aggregation = Aggregation.newAggregation(lookupAggPayments, lookupAggRecordSteps, matchAgg);
+        Aggregation aggregation = Aggregation.newAggregation(
+                lookupAggPayments,
+                lookupAggRecordSteps,
+                lookupAggCustomer,
+                lookupAggService,
+                lookupAggManager,
+                matchAgg,
+                unwindAggCustomer,
+                unwindAggService,
+                unwindAggManager,
+                sortAgg, skipAgg, limitAgg
+        );
 
         // query database
         AggregationResults<Record> obj = mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(Record.class), Record.class);
@@ -140,14 +162,15 @@ public class RecordServImpl implements RecordService {
     public Page<RecordReturnDto> findAllForCustomers(Integer page, Integer size) {
         User user = authenticationUtil.getConnectedUser().orElseThrow(() -> new ObjectNotFoundException("connected.user"));
 
-        Pageable pageable = PageRequest.of(
-                Objects.isNull(page) ? 0 : page - 1,
-                Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size
-        );
+        int pageNumber = Objects.isNull(page) ? 0 : page - 1;
+        int pageSize = Objects.isNull(size) ? GlobalParams.GLOBAL_DEFAULT_PAGE_SIZE : size;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "createdOn");
 
         // create lookup aggregations
         AggregationOperation lookupAggPayments = Aggregation.lookup("payment", "_id", "recordId", "payments");
         AggregationOperation lookupAggRecordSteps = Aggregation.lookup("recordstep", "_id", "recordId", "recordSteps");
+        AggregationOperation lookupAggCustomer = Aggregation.lookup("user", "customerId", "_id", "customer");
+        AggregationOperation lookupAggService = Aggregation.lookup("service", "serviceId", "_id", "service");
 
         // create criteria filters
         Criteria criteria = new Criteria();
@@ -156,8 +179,18 @@ public class RecordServImpl implements RecordService {
         // create match aggregation
         AggregationOperation matchAgg = Aggregation.match(criteria);
 
+        // unwind aggregation
+        AggregationOperation unwindAggCustomer = Aggregation.unwind("customer", true);
+        AggregationOperation unwindAggService = Aggregation.unwind("service", true);
+
+        AggregationOperation sortAgg = Aggregation.sort(Sort.Direction.DESC, "createdOn");
+        AggregationOperation skipAgg = Aggregation.skip(pageNumber * pageSize);
+        AggregationOperation limitAgg = Aggregation.limit(pageSize);
+
         // final aggreagation
-        Aggregation aggregation = Aggregation.newAggregation(lookupAggPayments, lookupAggRecordSteps, matchAgg);
+        Aggregation aggregation = Aggregation.newAggregation(
+                lookupAggPayments, lookupAggRecordSteps, lookupAggCustomer, lookupAggService,
+                matchAgg, unwindAggCustomer, unwindAggService, sortAgg, skipAgg, limitAgg);
 
         // query database
         AggregationResults<Record> obj = mongoTemplate.aggregate(aggregation, mongoTemplate.getCollectionName(Record.class), Record.class);
@@ -180,6 +213,9 @@ public class RecordServImpl implements RecordService {
         // create lookup aggregations
         AggregationOperation lookupAggPayments = Aggregation.lookup("payment", "_id", "recordId", "payments");
         AggregationOperation lookupAggRecordSteps = Aggregation.lookup("recordstep", "_id", "recordId", "recordSteps");
+        AggregationOperation lookupAggCustomer = Aggregation.lookup("user", "customerId", "_id", "customer");
+        AggregationOperation lookupAggService = Aggregation.lookup("service", "serviceId", "_id", "service");
+        AggregationOperation lookupAggManager = Aggregation.lookup("user", "managerId", "_id", "manager");
 
         // create criteria filters
         Criteria criteria = new Criteria();
@@ -188,8 +224,23 @@ public class RecordServImpl implements RecordService {
         // create match aggregation
         AggregationOperation matchAgg = Aggregation.match(criteria);
 
+        // unwind aggregation
+        AggregationOperation unwindAggCustomer = Aggregation.unwind("customer", true);
+        AggregationOperation unwindAggService = Aggregation.unwind("service", true);
+        AggregationOperation unwindAggManager = Aggregation.unwind("manager", true);
+
         // final aggreagation
-        Aggregation aggregation = Aggregation.newAggregation(lookupAggPayments, lookupAggRecordSteps, matchAgg);
+        Aggregation aggregation = Aggregation.newAggregation(
+                lookupAggPayments,
+                lookupAggRecordSteps,
+                lookupAggCustomer,
+                lookupAggService,
+                lookupAggManager,
+                matchAgg,
+                unwindAggCustomer,
+                unwindAggService,
+                unwindAggManager
+        );
 
         // query database
         AggregationResults<Record> obj = mongoTemplate.aggregate(

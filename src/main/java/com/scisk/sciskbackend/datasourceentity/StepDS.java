@@ -40,7 +40,7 @@ public class StepDS {
                 .order(stepDS.getOrder())
                 .enabled(stepDS.getEnabled())
                 .service(ServiceDS.map(stepDS.getService()))
-                .jobs(stepDS.getJobs().stream().map(JobDS::map).collect(Collectors.toList()))
+                .jobs(Objects.isNull(stepDS.getJobs()) ? null : stepDS.getJobs().stream().map(JobDS::map).collect(Collectors.toList()))
                 .build();
     }
 
