@@ -2,7 +2,7 @@ package com.scisk.sciskbackend.config;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
-import com.scisk.sciskbackend.entity.Role;
+import com.scisk.sciskbackend.datasourceentity.UserDS;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.repository.UserRepository;
 import com.scisk.sciskbackend.service.CounterService;
@@ -69,15 +69,15 @@ public class AppRunner implements ApplicationRunner {
         Document obj = (Document) mongoCollection.find(whereQuery).first();
         if (Objects.isNull(obj)) {
             User user = User.builder()
-                    .firsname(GlobalParams.SUPERUSER_FIRSTNAME)
+                    .firstname(GlobalParams.SUPERUSER_FIRSTNAME)
                     .lastname(GlobalParams.SUPERUSER_LASTNAME)
                     .email(GlobalParams.SUPERUSER_EMAIL)
-                    .roles(Collections.singletonList(Role.builder().name(GlobalParams.Role.ADMINISTRATOR.name()).build()))
+                    .roles(Collections.singletonList(GlobalParams.Role.ADMINISTRATOR.name()))
                     .status(GlobalParams.UserStatus.ACTIVE.name())
                     .password(passwordEncodingManager.encode(GlobalParams.SUPERUSER_PASSWORD))
                     .build();
             user.setId(counterService.getNextSequence(GlobalParams.USER_COLLECTION_NAME));
-            userRepository.save(user);
+            userRepository.save(UserDS.map(user));
         }
 
     }
@@ -97,6 +97,7 @@ public class AppRunner implements ApplicationRunner {
         documentNames.add(GlobalParams.STEP_COLLECTION_NAME);
         documentNames.add(GlobalParams.JOB_COLLECTION_NAME);
         documentNames.add(GlobalParams.NEEDED_DOCUMENT_COLLECTION_NAME);
+        documentNames.add(GlobalParams.DOCUMENT_COLLECTION_NAME);
 
         Set<String> collectionNames = mongo.getCollectionNames();
         boolean countersCollectionExists = false;

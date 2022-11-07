@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.entity;
 
 import lombok.*;
+import org.bson.types.Binary;
 
 @Builder
 @Getter
@@ -8,12 +9,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Document {
+	private Long id;
 	private String name;
-	private String path;
 	private String extension;
-	
-	private Record record;
-	
-	private NeededDocument neededDocument;
+	private Binary content;
 
+	private NeededDocument neededDocument;
+	private Long neededDocumentId;
 }

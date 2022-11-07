@@ -1,4 +1,4 @@
-package com.scisk.sciskbackend.entity;
+package com.scisk.sciskbackend.datasourceentity;
 
 import lombok.Getter;
 import lombok.Setter;

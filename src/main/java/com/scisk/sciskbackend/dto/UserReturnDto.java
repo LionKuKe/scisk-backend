@@ -1,6 +1,5 @@
 package com.scisk.sciskbackend.dto;
 
-import com.scisk.sciskbackend.entity.Role;
 import com.scisk.sciskbackend.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -32,10 +30,10 @@ public class UserReturnDto {
     public static UserReturnDto map(User user) {
         return UserReturnDto.builder()
                 .id(user.getId())
-                .firstname(user.getFirsname())
+                .firstname(user.getFirstname())
                 .lastname(user.getLastname())
                 .email(user.getEmail())
-                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toList()))
+                .roles(user.getRoles())
                 .status(user.getStatus())
                 .phone1(user.getPhone1())
                 .phone2(user.getPhone2())

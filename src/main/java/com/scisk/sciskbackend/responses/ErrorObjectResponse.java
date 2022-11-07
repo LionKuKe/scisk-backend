@@ -12,11 +12,7 @@ import java.util.Map;
 @NoArgsConstructor
 public class ErrorObjectResponse extends OperationResponseModel {
 
-    public ErrorObjectResponse(ResponseStatusEnum operationStatus) {
-        this(operationStatus, null);
-    }
-
-    public ErrorObjectResponse(ResponseStatusEnum operationStatus, Map<String, String> errors) {
+    public ErrorObjectResponse(Map<String, String> errors) {
         // super(operationStatus);
         this.errors = errors;
     }

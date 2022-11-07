@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.config.springsecurity;
 
-import com.scisk.sciskbackend.entity.RefreshToken;
+import com.scisk.sciskbackend.datasourceentity.RefreshToken;
+import com.scisk.sciskbackend.datasourceentity.UserDS;
 import com.scisk.sciskbackend.repository.RefreshTokenRepository;
 import com.scisk.sciskbackend.repository.UserRepository;
 import com.scisk.sciskbackend.service.CounterService;
@@ -38,7 +39,7 @@ public class RefreshTokenService {
     public RefreshToken createRefreshToken(Long userId) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setId(counterService.getNextSequence("refreshtoken"));
-        refreshToken.setUser(userRepository.findById(userId).get());
+        refreshToken.setUser(UserDS.map(userRepository.findById(userId).get()));
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken = refreshTokenRepository.save(refreshToken);

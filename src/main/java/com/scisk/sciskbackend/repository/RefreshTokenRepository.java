@@ -1,6 +1,6 @@
 package com.scisk.sciskbackend.repository;
 
-import com.scisk.sciskbackend.entity.RefreshToken;
+import com.scisk.sciskbackend.datasourceentity.RefreshToken;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;

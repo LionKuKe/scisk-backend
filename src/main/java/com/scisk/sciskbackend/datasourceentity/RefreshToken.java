@@ -1,5 +1,6 @@
-package com.scisk.sciskbackend.entity;
+package com.scisk.sciskbackend.datasourceentity;
 
+import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.util.GlobalParams;
 import lombok.*;
 import org.springframework.data.annotation.Id;

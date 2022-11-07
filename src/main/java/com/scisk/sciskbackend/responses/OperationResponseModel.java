@@ -11,8 +11,4 @@ import lombok.Setter;
 @NoArgsConstructor
 public class OperationResponseModel {
     private String message;
-
-    public enum ResponseStatusEnum {
-        SUCCESS, ERROR, WARNING, NO_ACCESS
-    };
 }

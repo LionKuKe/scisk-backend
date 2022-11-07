@@ -1,6 +1,8 @@
 package com.scisk.sciskbackend.util;
 
-import java.util.Objects;
+import java.time.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Util {
 
@@ -8,6 +10,11 @@ public class Util {
     public static enum PASSWOR_STATE {INVALID, WEAK, STRONG};
     public static int OTP_LENGTH = 6;
     public static long OTP_DURATION = 10;
+
+    public static Map<String, String> COLLECTION_NAME_COLLECTION_CODE_MAP = new HashMap<>();
+    static {
+        COLLECTION_NAME_COLLECTION_CODE_MAP.put(GlobalParams.RECORD_COLLECTION_NAME, "SK");
+    }
 
     /**
      * Teste l'adresse email envoyée en paramètre et retourne true si
@@ -59,4 +66,93 @@ public class Util {
             return PASSWOR_STATE.WEAK.name();
     }
 
+    public static Long convertStringToLong(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (Exception exc) {
+            return null;
+        }
+    }
+
+    public static Double convertStringToDouble(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception exc) {
+            return null;
+        }
+    }
+
+    public static <T> T[] removeElementInArray(T[] arr, int index){
+        for (int i = index + 1 ; i < arr.length ; i++) {
+            arr[i-1] = arr[i];
+        }
+        return (T[]) Arrays.stream(arr)
+                .limit(arr.length - 1)
+                .map(t -> (T) t).toArray();
+    }
+
+    public static <T> T[] removeElementsInArray(T[] arr, List<Integer> indexes){
+        for (Integer index : indexes) {
+            for (int i = index + 1 ; i < arr.length ; i++) {
+                arr[i-1] = arr[i];
+            }
+        }
+        return (T[]) Arrays.stream(arr).limit(arr.length - indexes.size()).map(t -> (T) t).toArray();
+    }
+
+    public static int getYearFromInstant(Instant instant) {
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
+        Calendar cal1 = GregorianCalendar.from(zdt);
+
+        return cal1.get(Calendar.YEAR);
+    }
+
+    public static int getMonthFromInstant(Instant instant) {
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
+        Calendar cal1 = GregorianCalendar.from(zdt);
+
+        return cal1.get(Calendar.MONTH);
+    }
+
+    public static int getDayOfMonthFromInstant(Instant instant) {
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
+        Calendar cal1 = GregorianCalendar.from(zdt);
+
+        return cal1.get(Calendar.DAY_OF_MONTH);
+    }
+
+    public static Instant getFirstDayOfMonth(int year, Month month) {
+        var firstDay = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        return firstDay.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    public static Instant getLastDayOfMonth(int year, Month month) {
+        var firstDay = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        var yearMonth = YearMonth.from(firstDay);
+        var lastDay = yearMonth.atEndOfMonth().atTime(23, 59, 59);
+        return lastDay.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    public static String addZerosInFrontOfValue(Long value, Integer totalNumberOfChars) {
+        if (Objects.isNull(value) || Objects.isNull(totalNumberOfChars) || totalNumberOfChars <= 0) {
+            throw new NumberFormatException();
+        }
+        if (value.toString().length() > totalNumberOfChars)
+            return value.toString();
+        else {
+            return addZeroInFrontOfString(value.toString(), totalNumberOfChars);
+        }
+    }
+
+    public static String addZeroInFrontOfString(String value, Integer totalNumberOfChars) {
+        if (value.length() == totalNumberOfChars) {
+            return value;
+        } else {
+            return addZeroInFrontOfString("0" + value, totalNumberOfChars);
+        }
+    }
+
+    public static <T> T testListNullAndGetFirstItem(List<T> list) {
+        return (Objects.isNull(list) || list.isEmpty()) ? null : list.get(0);
+    }
 }
