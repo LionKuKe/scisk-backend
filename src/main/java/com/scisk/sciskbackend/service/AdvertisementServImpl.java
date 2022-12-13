@@ -1,5 +1,6 @@
 package com.scisk.sciskbackend.service;
 
+import com.scisk.sciskbackend.dto.AdvertisementListDto;
 import com.scisk.sciskbackend.entity.Advertisement;
 import com.scisk.sciskbackend.inputdatasource.*;
 import com.scisk.sciskbackend.util.GlobalParams;
@@ -12,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -47,5 +50,10 @@ public class AdvertisementServImpl implements AdvertisementService {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+    }
+
+    @Override
+    public List<AdvertisementListDto> findAllEnabled() {
+        return advertisementInputDS.findAllEnabled().stream().map(AdvertisementListDto::map).collect(Collectors.toList());
     }
 }

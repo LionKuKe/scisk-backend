@@ -37,4 +37,16 @@ public class AdvertisementDS {
                 .enabled(advertisement.getEnabled())
                 .build();
     }
+
+    public static Advertisement map(AdvertisementDS advertisement) {
+        return Advertisement.builder()
+                .id(advertisement.getId())
+                .title(advertisement.getTitle())
+                .description(advertisement.getDescription())
+                .content(advertisement.getContent())
+                .createdAt(advertisement.getCreatedAt())
+                .priority(advertisement.getPriority())
+                .enabled(advertisement.getEnabled())
+                .build();
+    }
 }

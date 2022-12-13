@@ -1,10 +1,12 @@
 package com.scisk.sciskbackend.controller;
 
+import com.scisk.sciskbackend.dto.AdvertisementListDto;
 import com.scisk.sciskbackend.dto.PaymentCreateDto;
 import com.scisk.sciskbackend.dto.PaymentReturnDto;
 import com.scisk.sciskbackend.service.AdvertisementService;
 import com.scisk.sciskbackend.service.PaymentService;
 import com.scisk.sciskbackend.util.Util;
+import com.scisk.sciskbackend.util.response.ListObjectResponse;
 import com.scisk.sciskbackend.util.response.OperationResponse;
 import com.scisk.sciskbackend.util.response.PageObjectResponse;
 import com.scisk.sciskbackend.util.response.SimpleObjectResponse;
@@ -57,76 +59,13 @@ public class AdvertisementController {
         return ResponseEntity.ok(new OperationResponse("advertisement.created"));
     }
 
-    /*@Operation(summary = "Modifier un paiement", tags = {"Gestion des paiements des clients"})
+    @Operation(summary = "Récupérer la liste des annonces ordonnée par ordre de priorité", tags = {"Gestion des annonces"})
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Modification réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PaymentReturnDto.class)))),
-            @ApiResponse(responseCode = "404", description = "Le paiement n'a pas été trouvé")
+            @ApiResponse(responseCode = "200", description = "Liste retournée avec succès")
     })
-    @PutMapping("/update/{id}")
-    @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseEntity<SimpleObjectResponse<PaymentReturnDto>> update(
-            @Parameter(description = "Données du paiement", required = true, schema = @Schema(implementation = PaymentCreateDto.class))
-            @RequestBody PaymentCreateDto paymentCreateDto,
-
-            @Parameter(description = "Id du paiement à modifier", required = true)
-            @PathVariable String id
-    ) {
-        Long idValue = Util.convertStringToLong(id);
-        return ResponseEntity.ok(new SimpleObjectResponse<>("record.updated", advertisementService.update(idValue, paymentCreateDto)));
+    @GetMapping("/find-all-enabled")
+    public ResponseEntity<ListObjectResponse<AdvertisementListDto>> findAllEnabled() {
+        return ResponseEntity.ok(new ListObjectResponse<>("", advertisementService.findAllEnabled()));
     }
-
-    @Operation(summary = "Récupérer la liste de tous les paiements de l'application)", tags = {"Gestion des paiements des clients"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Liste retournée avec succès",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = PaymentReturnDto.class)))),
-    })
-    @GetMapping("/find-all")
-    @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseEntity<PageObjectResponse<PaymentReturnDto>> findAll(
-            @Parameter(description = "La page a retourner")
-            @RequestParam(value = "page", required = false) Integer page,
-
-            @Parameter(description = "La taille de la page à retourner")
-            @RequestParam(value = "size", required = false) Integer size,
-
-            @RequestParam(value = "observation", required = false, defaultValue = "") String observation,
-            @RequestParam(value = "recordId", required = false, defaultValue = "") String recordId
-    ) {
-        Long recordIdValue = Util.convertStringToLong(recordId);
-        Page<PaymentReturnDto> pagedResult = advertisementService.findAllPaymentByFilters(page, size, observation, recordIdValue);
-        PageObjectResponse<PaymentReturnDto> response = new PageObjectResponse<>();
-        response.setPageStats(pagedResult, true);
-        response.setItems(pagedResult.getContent());
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    @Operation(summary = "Récupérer un paiement par son id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Données retournées avec succès"),
-            @ApiResponse(responseCode = "404", description = "Paiement non trouvé")
-    })
-    @GetMapping("/get-by-id/{id}")
-    @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
-    public ResponseEntity<SimpleObjectResponse<PaymentReturnDto>> findById(@PathVariable String id) {
-        Long idValue = Util.convertStringToLong(id);
-        return ResponseEntity.ok(new SimpleObjectResponse<>("ok", advertisementService.findById(idValue)));
-    }
-
-    @Operation(summary = "Supprimer un paiement", tags = {"Gestion des paiements des clients"})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Suppression réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = PaymentReturnDto.class)))),
-            @ApiResponse(responseCode = "404", description = "Le paiement n'a pas été trouvé")
-    })
-    @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasAnyAuthority('CHIEF', 'ADMINISTRATOR')")
-    public ResponseEntity<SimpleObjectResponse<PaymentReturnDto>> delete(
-            @Parameter(description = "Id du paiement à supprimer", required = true)
-            @PathVariable String id
-    ) {
-        Long idValue = Util.convertStringToLong(id);
-        advertisementService.delete(idValue);
-        return ResponseEntity.ok(new SimpleObjectResponse<>("payment.deleted", null));
-    }*/
 
 }
