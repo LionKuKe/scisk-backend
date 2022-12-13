@@ -13,7 +13,7 @@ public class Util {
 
     public static Map<String, String> COLLECTION_NAME_COLLECTION_CODE_MAP = new HashMap<>();
     static {
-        COLLECTION_NAME_COLLECTION_CODE_MAP.put(GlobalParams.RECORD_COLLECTION_NAME, "SK");
+        COLLECTION_NAME_COLLECTION_CODE_MAP.put(GlobalParams.RECORD_COLLECTION_NAME, "SCISK");
     }
 
     /**

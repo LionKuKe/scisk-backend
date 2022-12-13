@@ -77,6 +77,7 @@ public class UserController {
             @ApiResponse(responseCode = "412", description = "Email incorrect ou mot de passe incorrect")
     })
     @PostMapping("/create-employee-account")
+    @PreAuthorize("hasAnyAuthority('CHIEF', 'ADMINISTRATOR')")
     public ResponseEntity<SimpleObjectResponse<UserReturnDto>> createEmployeeAccount(
             @Parameter(description = "Données du compte employé", required = true, schema = @Schema(implementation = EmployeeCreateDto.class))
             @RequestBody EmployeeCreateDto employeeCreateDto
