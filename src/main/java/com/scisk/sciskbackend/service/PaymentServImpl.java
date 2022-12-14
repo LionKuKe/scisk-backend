@@ -98,7 +98,7 @@ public class PaymentServImpl implements PaymentService {
 
         // si les paiements sur le dossier atteignent le motant minimum de traitement de dossier on marque le dossier comme payé
         List<Payment> paymentList = paymentInputDS.findByRecordId(record.getId());
-        Double paidAmount = paymentCreateDto.getAmount() + (paymentList.isEmpty() ? 0 : paymentList.stream().filter(pay->!pay.getId().equals(idValue)).mapToDouble(Payment::getAmount).sum());
+        Double paidAmount = paymentCreateDto.getAmount() + (paymentList.isEmpty() ? 0 : paymentList.stream().filter(pay -> !pay.getId().equals(idValue)).mapToDouble(Payment::getAmount).sum());
         if (GlobalParams.MIN_AMOUNT_FOR_RECORD_OPENING.compareTo(paidAmount) < 0) {
             record.setPaid(true);
         } else {
@@ -162,7 +162,7 @@ public class PaymentServImpl implements PaymentService {
 
     @Override
     public PaymentReturnDto findById(Long idValue) {
-        return paymentInputDS.findById(idValue).map(PaymentReturnDto::map).orElseThrow( () -> new ObjectNotFoundException("id"));
+        return paymentInputDS.findById(idValue).map(PaymentReturnDto::map).orElseThrow(() -> new ObjectNotFoundException("id"));
     }
 
     @Override
