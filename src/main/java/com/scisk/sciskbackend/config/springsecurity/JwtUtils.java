@@ -24,17 +24,46 @@ public class JwtUtils {
                 (List<? extends GrantedAuthority>) userPrincipal.getAuthorities(),
                 userPrincipal.getFirstname(),
                 userPrincipal.getLastname(),
-                userPrincipal.getEmail()
+                userPrincipal.getEmail(),
+                userPrincipal.getStatus(),
+                userPrincipal.getPhone1(),
+                userPrincipal.getPhone2(),
+                userPrincipal.getPhone3(),
+                userPrincipal.getCountry(),
+                userPrincipal.getCity(),
+                userPrincipal.getAddress(),
+                userPrincipal.getEmployee()
         );
     }
 
-    public String generateTokenFromUsername(List<? extends GrantedAuthority> authorities, String firstname, String lastname, String email) {
+    public String generateTokenFromUsername(
+            List<? extends GrantedAuthority> authorities,
+            String firstname,
+            String lastname,
+            String email,
+            String status,
+            String phone1,
+            String phone2,
+            String phone3,
+            String country,
+            String city,
+            String address,
+            Boolean employee
+    ) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("authorities", authorities)
                 .claim("firstname", firstname)
                 .claim("lastname", lastname)
                 .claim("email", email)
+                .claim("status", status)
+                .claim("phone1", phone1)
+                .claim("phone2", phone2)
+                .claim("phone3", phone3)
+                .claim("country", country)
+                .claim("city", city)
+                .claim("address", address)
+                .claim("employee", employee)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)

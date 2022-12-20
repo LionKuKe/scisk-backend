@@ -143,8 +143,15 @@ public class UserController {
                             user.getRoles().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()),
                             user.getFirstname(),
                             user.getLastname(),
-                            user.getEmail()
-
+                            user.getEmail(),
+                            user.getStatus(),
+                            user.getPhone1(),
+                            user.getPhone2(),
+                            user.getPhone3(),
+                            user.getCountry(),
+                            user.getCity(),
+                            user.getAddress(),
+                            user.getEmployee()
                     );
                     return new ResponseModel<>(new SimpleObjectResponse<>("token.generated", new TokenRefreshResponse(token, requestRefreshToken)), HttpStatus.OK);
                 })
