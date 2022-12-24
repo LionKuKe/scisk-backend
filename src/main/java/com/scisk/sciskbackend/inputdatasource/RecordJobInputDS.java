@@ -7,4 +7,6 @@ import java.util.List;
 public interface RecordJobInputDS {
 
     void saveAll(List<RecordJob> recordJobs);
+
+    List<RecordJob> findAllByJob(Long jobId);
 }

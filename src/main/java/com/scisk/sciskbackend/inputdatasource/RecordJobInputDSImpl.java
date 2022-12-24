@@ -1,5 +1,7 @@
 package com.scisk.sciskbackend.inputdatasource;
 
+import com.scisk.sciskbackend.datasourceentity.JobDS;
+import com.scisk.sciskbackend.datasourceentity.RecordDS;
 import com.scisk.sciskbackend.datasourceentity.RecordJobDS;
 import com.scisk.sciskbackend.entity.RecordJob;
 import com.scisk.sciskbackend.repository.RecordJobRepository;
@@ -22,5 +24,13 @@ public class RecordJobInputDSImpl implements RecordJobInputDS  {
     @Override
     public void saveAll(List<RecordJob> recordJobs) {
         recordJobRepository.saveAll(recordJobs.stream().map(RecordJobDS::map).collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<RecordJob> findAllByJob(Long jobId) {
+        return recordJobRepository.findAllByJob(JobDS.builder().id(jobId).build())
+                .stream()
+                .map(RecordJobDS::map)
+                .collect(Collectors.toList());
     }
 }

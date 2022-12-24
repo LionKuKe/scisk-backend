@@ -31,7 +31,7 @@ public class JobDS {
                 .name(jobDS.getName())
                 .description(jobDS.getDescription())
                 .order(jobDS.getOrder())
-                .step(StepDS.map(jobDS.getStep()))
+                .step(Objects.isNull(jobDS.getStep()) ? null : StepDS.map(jobDS.getStep()))
                 .build();
     }
 
@@ -41,7 +41,7 @@ public class JobDS {
                 .name(job.getName())
                 .description(job.getDescription())
                 .order(job.getOrder())
-                .stepId(Objects.isNull(job.getStep()) ? null : job.getId())
+                .stepId(Objects.isNull(job.getStep()) ? null : job.getStep().getId())
                 .build();
     }
 }
