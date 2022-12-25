@@ -52,9 +52,9 @@ public class RecordJobDS {
                 .observation(recordJobDS.getObservation())
                 .chiefEndDate(recordJobDS.getChiefEndDate())
                 .chiefObservation(recordJobDS.getChiefObservation())
-                .employee(UserDS.map(recordJobDS.getEmployee()))
-                .recordStep(RecordStepDS.map(recordJobDS.getRecordStep()))
-                .job(JobDS.map(recordJobDS.getJob()))
+                .employee(Objects.isNull(recordJobDS.getEmployee()) ? null : UserDS.map(recordJobDS.getEmployee()))
+                .recordStep( Objects.isNull(recordJobDS.getRecordStep()) ? null : RecordStepDS.map(recordJobDS.getRecordStep()))
+                .job( Objects.isNull(recordJobDS.getJob()) ? null : JobDS.map(recordJobDS.getJob()))
                 .build();
     }
 

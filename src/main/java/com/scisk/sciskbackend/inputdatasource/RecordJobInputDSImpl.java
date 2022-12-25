@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -32,5 +33,16 @@ public class RecordJobInputDSImpl implements RecordJobInputDS  {
                 .stream()
                 .map(RecordJobDS::map)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public RecordJob save(RecordJob job) {
+        recordJobRepository.save(RecordJobDS.map(job));
+        return job;
+    }
+
+    @Override
+    public Optional<RecordJob> findById(Long idValue) {
+        return recordJobRepository.findById(idValue).map(RecordJobDS::map);
     }
 }

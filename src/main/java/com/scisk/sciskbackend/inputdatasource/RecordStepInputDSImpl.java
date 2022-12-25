@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -30,4 +31,15 @@ public class RecordStepInputDSImpl implements RecordStepInputDS {
     public void saveAll(List<RecordStep> recordSteps) {
         recordStepRepository.saveAll(recordSteps.stream().map(RecordStepDS::map).collect(Collectors.toList()));
     }
+
+    @Override
+    public Optional<RecordStep> findById(Long idValue) {
+        return recordStepRepository.findById(idValue).map(RecordStepDS::map);
+    }
+
+    @Override
+    public Optional<RecordStep> findByRecordJobId(Long id) {
+        return recordStepRepository.findByRecordJobId(id).map(RecordStepDS::map);
+    }
+
 }
