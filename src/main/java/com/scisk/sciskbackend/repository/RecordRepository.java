@@ -2,6 +2,7 @@ package com.scisk.sciskbackend.repository;
 
 import com.scisk.sciskbackend.datasourceentity.RecordDS;
 import com.scisk.sciskbackend.datasourceentity.StepDS;
+import com.scisk.sciskbackend.entity.Document;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -26,7 +27,4 @@ public interface RecordRepository extends MongoRepository<RecordDS, Long> {
     List<RecordDS> findAllByCreatedOnBetween(Instant start, Instant end);
 
     List<RecordDS> findAllByCode(String code);
-
-    @Query(" {documents._id: ?0} ")
-    Optional<RecordDS> findByDocumentId(Long documentId);
 }

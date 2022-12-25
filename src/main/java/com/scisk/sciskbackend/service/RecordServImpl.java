@@ -307,14 +307,14 @@ public class RecordServImpl implements RecordService {
     }
 
     @Override
-    public ResponseEntity<Resource> downloadDocument(HttpServletRequest request, Long documentId) {
-        Record record = recordInputDS.findByDocumentId(documentId).orElseThrow(() -> new ObjectNotFoundException("documentId"));
+    public ResponseEntity<Resource> downloadDocument(HttpServletRequest request, Long id, Long documentId) {
+        Record record = getById(id);
         Document document = record.getDocuments().stream().filter(document1 -> document1.getId().equals(documentId)).findFirst().orElseThrow(() -> new ObjectNotFoundException("documentId"));
 
         Resource resource = new ByteArrayResource(document.getContent().getData(), document.getName());
 
         // Try to determine file's content type
-        String contentType = URLConnection.guessContentTypeFromName(resource.getFilename());
+        String contentType = URLConnection.guessContentTypeFromName(document.getName() + "." + document.getExtension());
         if (contentType == null) {
             contentType = "application/octet-stream";
         }

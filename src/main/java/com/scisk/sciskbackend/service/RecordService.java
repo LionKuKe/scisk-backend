@@ -29,5 +29,5 @@ public interface RecordService {
 
     void deleteDocument(Long id, Long documentId);
 
-    ResponseEntity<Resource> downloadDocument(HttpServletRequest request, Long documentId);
+    ResponseEntity<Resource> downloadDocument(HttpServletRequest request, Long id, Long documentId);
 }

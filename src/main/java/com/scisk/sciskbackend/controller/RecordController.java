@@ -190,15 +190,17 @@ public class RecordController {
         return ResponseEntity.ok(new OperationResponse("document.deleted"));
     }
 
-    @Operation(summary = "Télécharger un document")
-    @GetMapping(value = "/download/documents/{documentId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @Operation(summary = "Télécharger un document (fournir l'id du dossier et l'id du document)")
+    @GetMapping(value = "/download/{id}/documents/{documentId}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     @PreAuthorize("hasAnyAuthority('CUSTOMER', 'ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
     public ResponseEntity<Resource> downloadDocument(
+            @PathVariable String id,
             @PathVariable String documentId,
             HttpServletRequest request
     ) {
+        Long idValue = Util.convertStringToLong(id);
         Long documentIdValue = Util.convertStringToLong(documentId);
-        return recordService.downloadDocument(request, documentIdValue);
+        return recordService.downloadDocument(request, idValue, documentIdValue);
     }
 
 }
