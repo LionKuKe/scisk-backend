@@ -15,13 +15,5 @@ public interface RecordStepRepository extends MongoRepository<RecordStepDS, Long
 
     @Query("{recordId: ?0}")
     List<RecordStepDS> findAllByRecordId(Long recordId);
-
-    @Aggregation(
-            pipeline = {
-                    "{$lookup: {from: 'recordjob', localField: '_id', foreignField: 'recordStepId', as: 'recordJobs'}}",
-                    "{$unwind: {path: '$recordJobs', preserveNullAndEmptyArrays: false}}",
-                    "{$match: {recordJobs._id: ?0}}"
-            }
-    )
-    Optional<RecordStepDS> findByRecordJobId(Long id);
+    
 }

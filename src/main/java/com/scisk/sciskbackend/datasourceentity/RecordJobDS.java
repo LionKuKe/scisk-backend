@@ -1,6 +1,8 @@
 package com.scisk.sciskbackend.datasourceentity;
 
+import com.scisk.sciskbackend.entity.Job;
 import com.scisk.sciskbackend.entity.RecordJob;
+import com.scisk.sciskbackend.entity.RecordStep;
 import com.scisk.sciskbackend.entity.User;
 import com.scisk.sciskbackend.util.GlobalParams;
 import lombok.*;
@@ -52,9 +54,9 @@ public class RecordJobDS {
                 .observation(recordJobDS.getObservation())
                 .chiefEndDate(recordJobDS.getChiefEndDate())
                 .chiefObservation(recordJobDS.getChiefObservation())
-                .employee(Objects.isNull(recordJobDS.getEmployee()) ? null : UserDS.map(recordJobDS.getEmployee()))
-                .recordStep( Objects.isNull(recordJobDS.getRecordStep()) ? null : RecordStepDS.map(recordJobDS.getRecordStep()))
-                .job( Objects.isNull(recordJobDS.getJob()) ? null : JobDS.map(recordJobDS.getJob()))
+                .employee(User.builder().id(recordJobDS.getEmployeeId().orElse(null)).build())
+                .recordStep(RecordStep.builder().id(recordJobDS.getRecordStepId()).build())
+                .job(Job.builder().id(recordJobDS.getJobId()).build())
                 .build();
     }
 

@@ -37,9 +37,4 @@ public class RecordStepInputDSImpl implements RecordStepInputDS {
         return recordStepRepository.findById(idValue).map(RecordStepDS::map);
     }
 
-    @Override
-    public Optional<RecordStep> findByRecordJobId(Long id) {
-        return recordStepRepository.findByRecordJobId(id).map(RecordStepDS::map);
-    }
-
 }

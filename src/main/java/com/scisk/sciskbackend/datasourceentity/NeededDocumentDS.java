@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.datasourceentity;
 
 import com.scisk.sciskbackend.entity.NeededDocument;
+import com.scisk.sciskbackend.entity.Service;
 import com.scisk.sciskbackend.util.GlobalParams;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -27,7 +28,7 @@ public class NeededDocumentDS {
         return NeededDocument.builder()
                 .id(neededDocumentDS.getId())
                 .name(neededDocumentDS.getName())
-                .service(ServiceDS.map(neededDocumentDS.getService()))
+                .service(Service.builder().id(neededDocumentDS.getServiceId()).build())
                 .enabled(neededDocumentDS.getEnabled())
                 .build();
     }

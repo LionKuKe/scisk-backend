@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.datasourceentity;
 
 import com.scisk.sciskbackend.entity.Job;
+import com.scisk.sciskbackend.entity.Step;
 import com.scisk.sciskbackend.util.GlobalParams;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -31,7 +32,7 @@ public class JobDS {
                 .name(jobDS.getName())
                 .description(jobDS.getDescription())
                 .order(jobDS.getOrder())
-                .step(Objects.isNull(jobDS.getStep()) ? null : StepDS.map(jobDS.getStep()))
+                .step(Step.builder().id(jobDS.getStepId()).build())
                 .build();
     }
 

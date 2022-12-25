@@ -1,6 +1,7 @@
 package com.scisk.sciskbackend.datasourceentity;
 
 import com.scisk.sciskbackend.entity.Payment;
+import com.scisk.sciskbackend.entity.Record;
 import com.scisk.sciskbackend.util.GlobalParams;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -32,7 +33,7 @@ public class PaymentDS {
                 .paymentDate(paymentDS.getPaymentDate())
                 .amount(paymentDS.getAmount())
                 .observation(paymentDS.getObservation())
-                .record(Objects.isNull(paymentDS.getRecord()) ? null : RecordDS.map(paymentDS.getRecord()))
+                .record(Record.builder().id(paymentDS.getRecordId()).build())
                 .build();
     }
 

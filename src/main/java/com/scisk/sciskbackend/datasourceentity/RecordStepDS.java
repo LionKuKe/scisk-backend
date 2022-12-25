@@ -43,9 +43,9 @@ public class RecordStepDS {
                 .name(recordStepDS.getName())
                 .observation(recordStepDS.getObservation())
                 .endDate(recordStepDS.getEndDate())
-                .record(RecordDS.map(recordStepDS.getRecord()))
-                .step(StepDS.map(recordStepDS.getStep()))
-                .recordJobs(recordStepDS.getRecordJobs().stream().map(RecordJobDS::map).collect(Collectors.toList()))
+                .record(Record.builder().id(recordStepDS.getRecordId()).build())
+                .step(Step.builder().id(recordStepDS.getStepId()).build())
+                .recordJobs(Objects.isNull(recordStepDS.getRecordJobs()) ? null : recordStepDS.getRecordJobs().stream().map(RecordJobDS::map).collect(Collectors.toList()))
                 .build();
     }
 

@@ -13,5 +13,4 @@ public interface RecordStepInputDS {
 
     Optional<RecordStep> findById(Long idValue);
 
-    Optional<RecordStep> findByRecordJobId(Long id);
 }

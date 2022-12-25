@@ -65,7 +65,7 @@ public class RecordJobServImpl implements RecordJobService {
         recordJob.setChiefEndDate(closeRecordJobByChiefDto.getChiefEndDate());
         recordJob.setChiefObservation(closeRecordJobByChiefDto.getChiefObservation());
         recordJobInputDS.save(recordJob);
-        RecordStep recordStep = recordStepInputDS.findByRecordJobId(recordJob.getId()).get();
+        RecordStep recordStep = recordStepInputDS.findById(recordJob.getRecordStep().getId()).get();
         recordStep.setEndDate(closeRecordJobByChiefDto.getChiefEndDate());
         recordStepInputDS.saveAll(Arrays.asList(recordStep));
     }
