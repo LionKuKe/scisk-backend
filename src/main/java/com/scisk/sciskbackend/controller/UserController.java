@@ -141,6 +141,7 @@ public class UserController {
                 .map(user -> {
                     String token = jwtUtils.generateTokenFromUsername(
                             user.getRoles().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()),
+                            user.getId(),
                             user.getFirstname(),
                             user.getLastname(),
                             user.getEmail(),

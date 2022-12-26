@@ -22,6 +22,7 @@ public class JwtUtils {
     public String generateJwtToken(UserDetailsImpl userPrincipal) {
         return generateTokenFromUsername(
                 (List<? extends GrantedAuthority>) userPrincipal.getAuthorities(),
+                userPrincipal.getId(),
                 userPrincipal.getFirstname(),
                 userPrincipal.getLastname(),
                 userPrincipal.getEmail(),
@@ -38,6 +39,7 @@ public class JwtUtils {
 
     public String generateTokenFromUsername(
             List<? extends GrantedAuthority> authorities,
+            Long id,
             String firstname,
             String lastname,
             String email,
@@ -52,6 +54,7 @@ public class JwtUtils {
     ) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("id", id)
                 .claim("authorities", authorities)
                 .claim("firstname", firstname)
                 .claim("lastname", lastname)
