@@ -206,7 +206,7 @@ public class UserServImpl implements UserService {
         return new PageImpl<>(
                 user.stream().map(UserReturnDto::map).collect(Collectors.toList()),
                 pageable,
-                mongoTemplate.count(query, User.class)
+                mongoTemplate.count(new Query(criteria), User.class)
         );
     }
 
