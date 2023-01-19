@@ -223,6 +223,36 @@ public class UserController {
         return ResponseEntity.ok(new SimpleObjectResponse<>("user.updated", userService.update(userIdValue, userUpdateDto)));
     }
 
+    @Operation(summary = "Activer un utilisateur = mettre son statut à ACTIVE", tags = {"Gestion des utilisateurs"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Modification réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non retrouvé en bd par son id")
+    })
+    @PutMapping("/activate-user/{id}")
+    @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> activateUser(
+            @Parameter(description = "Id de l'utilisateur à activer", required = true)
+            @PathVariable String id
+    ) {
+        Long userIdValue = Util.convertStringToLong(id);
+        return ResponseEntity.ok(new SimpleObjectResponse<>("user.activated", userService.activateUser(userIdValue)));
+    }
+
+    @Operation(summary = "Désactiver un utilisateur = mettre son statut à INACTIVE", tags = {"Gestion des utilisateurs"})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Modification réussie", content = @Content(array = @ArraySchema(schema = @Schema(implementation = UserReturnDto.class)))),
+            @ApiResponse(responseCode = "404", description = "Utilisateur non retrouvé en bd par son id")
+    })
+    @PutMapping("/inactivate-user/{id}")
+    @PreAuthorize("hasAnyAuthority('ASSISTANT', 'CHIEF', 'ADMINISTRATOR')")
+    public ResponseEntity<SimpleObjectResponse<UserReturnDto>> inactivateUser(
+            @Parameter(description = "Id de l'utilisateur à désactiver", required = true)
+            @PathVariable String id
+    ) {
+        Long userIdValue = Util.convertStringToLong(id);
+        return ResponseEntity.ok(new SimpleObjectResponse<>("user.inactivated", userService.inactivateUser(userIdValue)));
+    }
+
     @Operation(summary = "Récupérer les données d'un utilisateur par son id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Données retournées avec succès"),

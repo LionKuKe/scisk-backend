@@ -282,4 +282,20 @@ public class UserServImpl implements UserService {
                 userInputDS.findById(user.getId()).orElseThrow(() -> new ObjectNotFoundException("id"))
         );
     }
+
+    @Override
+    public UserReturnDto activateUser(Long userIdValue) {
+        // on vérifie l'id
+        User user = userInputDS.findById(userIdValue).orElseThrow(() -> new ObjectNotFoundException("id.not.found"));
+        user.setStatus(GlobalParams.UserStatus.ACTIVE.name());
+        return UserReturnDto.map(userInputDS.save(user));
+    }
+
+    @Override
+    public UserReturnDto inactivateUser(Long userIdValue) {
+        // on vérifie l'id
+        User user = userInputDS.findById(userIdValue).orElseThrow(() -> new ObjectNotFoundException("id.not.found"));
+        user.setStatus(GlobalParams.UserStatus.INACTIVE.name());
+        return UserReturnDto.map(userInputDS.save(user));
+    }
 }

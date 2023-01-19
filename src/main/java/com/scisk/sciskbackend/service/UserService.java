@@ -23,4 +23,8 @@ public interface UserService {
     void changeUserPassword(Long userIdValue, String password);
 
     UserReturnDto getConnectedUser();
+
+    UserReturnDto activateUser(Long userIdValue);
+
+    UserReturnDto inactivateUser(Long userIdValue);
 }
