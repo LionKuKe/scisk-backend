@@ -162,7 +162,34 @@ public class PaymentServImpl implements PaymentService {
 
     @Override
     public PaymentReturnDto findById(Long idValue) {
-        return paymentInputDS.findById(idValue).map(PaymentReturnDto::map).orElseThrow(() -> new ObjectNotFoundException("id"));
+        // create lookup aggregations
+        AggregationOperation lookupAggRecords = Aggregation.lookup("record", "recordId", "_id", "record");
+
+        // create criteria filters
+        Criteria criteria = new Criteria();
+        criteria.and("_id").is(idValue);
+
+        // create match aggregation
+        AggregationOperation matchAgg = Aggregation.match(criteria);
+
+        // unwind aggregation
+        AggregationOperation unwindAggRecords = Aggregation.unwind("record", true);
+
+        // final aggreagation
+        Aggregation aggregation = Aggregation.newAggregation(
+                lookupAggRecords,
+                matchAgg,
+                unwindAggRecords
+        );
+
+        // query database
+        AggregationResults<Payment> obj = mongoTemplate.aggregate(
+                aggregation, GlobalParams.PAYMENT_COLLECTION_NAME, Payment.class
+        );
+        java.util.List<Payment> results = obj.getMappedResults();
+
+        return PaymentReturnDto.map(results.stream().findFirst().orElseThrow(() -> new ObjectNotFoundException("id")));
+
     }
 
     @Override
