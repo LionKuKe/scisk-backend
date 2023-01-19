@@ -156,7 +156,7 @@ public class PaymentServImpl implements PaymentService {
         return new PageImpl<>(
                 results.stream().map(PaymentReturnDto::map).collect(Collectors.toList()),
                 pageable,
-                mongoTemplate.count(new Query(criteria), Record.class)
+                mongoTemplate.count(new Query(criteria), Payment.class)
         );
     }
 
